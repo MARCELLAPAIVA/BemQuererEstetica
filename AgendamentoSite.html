@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bem Querer Estética — Agendamento</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-deep: #2d4a3e;
+    --green-mid: #4a7c68;
+    --green-soft: #7aab94;
+    --green-pale: #b8d4c8;
+    --green-mist: #e8f2ee;
+    --green-frost: #f2f8f5;
+    --white: #fdfefe;
+    --pink-blush: #f2d0d8;
+    --pink-rose: #e8a8b8;
+    --text-dark: #1a2e28;
+    --text-mid: #3d5a52;
+    --text-light: #7a9990;
+    --gold: #c9a96e;
+    --shadow: rgba(45, 74, 62, 0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--green-frost);
+    color: var(--text-dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(145deg, var(--green-deep) 0%, var(--green-mid) 60%, var(--green-soft) 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: 60px 24px;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 340px; height: 340px;
+    background: radial-gradient(circle, rgba(185,212,200,0.18) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -40px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(201,169,110,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--green-pale);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border-radius: 30px;
+    margin-bottom: 32px;
+    backdrop-filter: blur(10px);
+  }
+
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(52px, 10vw, 96px);
+    font-weight: 300;
+    color: var(--white);
+    line-height: 0.95;
+    letter-spacing: -2px;
+    margin-bottom: 12px;
+  }
+  .hero h1 span {
+    font-style: italic;
+    color: var(--green-pale);
+  }
+
+  .hero-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 48px;
+  }
+
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--white);
+    color: var(--green-deep);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    padding: 18px 40px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    border: none;
+    cursor: pointer;
+  }
+  .hero-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+    background: var(--green-mist);
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,0.4);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: bounce 2s infinite;
+  }
+  .hero-scroll::after {
+    content: '';
+    width: 1px;
+    height: 40px;
+    background: rgba(255,255,255,0.3);
+  }
+  @keyframes bounce {
+    0%,100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* ── MAIN APP ── */
+  #app {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 60px 20px 100px;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    font-weight: 300;
+    color: var(--green-deep);
+    margin-bottom: 8px;
+  }
+  .section-title span { font-style: italic; color: var(--green-soft); }
+  .section-desc {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 40px;
+  }
+
+  /* ── STEPS ── */
+  .steps-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 48px;
+    gap: 0;
+  }
+  .step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    position: relative;
+  }
+  .step-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: var(--green-pale);
+    z-index: 0;
+  }
+  .step-item.done:not(:last-child)::after { background: var(--green-mid); }
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--green-mist);
+    border: 2px solid var(--green-pale);
+    color: var(--text-light);
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s;
+  }
+  .step-item.active .step-num {
+    background: var(--green-deep);
+    border-color: var(--green-deep);
+    color: white;
+  }
+  .step-item.done .step-num {
+    background: var(--green-mid);
+    border-color: var(--green-mid);
+    color: white;
+  }
+  .step-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-light);
+  }
+  .step-item.active .step-label { color: var(--green-deep); font-weight: 500; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 36px;
+    box-shadow: 0 2px 20px var(--shadow);
+    margin-bottom: 24px;
+    display: none;
+    animation: fadeUp 0.4s ease;
+  }
+  .card.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* ── CLIENT INFO ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-grid.full { grid-template-columns: 1fr; }
+  @media(max-width:600px){ .form-grid { grid-template-columns: 1fr; } }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    font-weight: 500;
+  }
+  .field input, .field select, .field textarea {
+    background: var(--green-frost);
+    border: 1.5px solid var(--green-mist);
+    border-radius: 10px;
+    padding: 13px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text-dark);
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--green-mid);
+    background: var(--white);
+  }
+
+  /* ── SERVICE GRID ── */
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+
+  .service-card {
+    background: var(--green-frost);
+    border: 2px solid transparent;
+    border-radius: 16px;
+    padding: 20px 16px;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .service-card:hover {
+    border-color: var(--green-pale);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px var(--shadow);
+  }
+  .service-card.selected {
+    border-color: var(--green-mid);
+    background: var(--white);
+    box-shadow: 0 4px 20px var(--shadow);
+  }
+  .service-card.selected::before {
+    content: '✓';
+    position: absolute;
+    top: 10px; right: 12px;
+    width: 22px; height: 22px;
+    background: var(--green-mid);
+    color: white;
+    border-radius: 50%;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+  .service-emoji { font-size: 28px; }
+  .service-name { font-size: 14px; font-weight: 500; color: var(--text-dark); }
+  .service-duration { font-size: 11px; color: var(--text-light); }
+  .service-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--green-deep);
+    margin-top: 4px;
+  }
+
+  /* ── DATE / TIME ── */
+  .date-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  @media(max-width:500px){ .date-grid { grid-template-columns: repeat(4,1fr); } }
+
+  .date-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 4px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background: var(--green-frost);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .date-btn:hover { border-color: var(--green-pale); }
+  .date-btn.selected {
+    background: var(--green-deep);
+    border-color: var(--green-deep);
+    color: white;
+  }
+  .date-btn.disabled { opacity: 0.35; cursor: not-allowed; }
+  .date-day { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
+  .date-num { font-size: 18px; font-weight: 500; }
+  .date-month { font-size: 9px; opacity: 0.6; }
+
+  .time-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 10px;
+  }
+  .time-btn {
+    padding: 12px 8px;
+    border-radius: 10px;
+    border: 2px solid var(--green-mist);
+    background: var(--green-frost);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .time-btn:hover { border-color: var(--green-soft); }
+  .time-btn.selected { background: var(--green-deep); border-color: var(--green-deep); color: white; }
+  .time-btn.busy { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
+
+  /* ── SUMMARY ── */
+  .summary-block {
+    background: var(--green-frost);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--green-mist);
+    font-size: 14px;
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-label { color: var(--text-light); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .summary-value { font-weight: 500; color: var(--text-dark); }
+  .summary-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--green-deep);
+  }
+
+  .payment-grid {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .pay-btn {
+    padding: 14px;
+    border-radius: 12px;
+    border: 2px solid var(--green-mist);
+    background: var(--green-frost);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+  }
+  .pay-btn:hover { border-color: var(--green-pale); }
+  .pay-btn.selected { background: var(--green-deep); border-color: var(--green-deep); color: white; }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    background: var(--green-deep);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 36px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s;
+    width: 100%;
+    margin-top: 20px;
+    letter-spacing: 0.5px;
+  }
+  .btn-primary:hover { background: var(--green-mid); transform: translateY(-2px); box-shadow: 0 8px 24px var(--shadow); }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--green-mid);
+    border: 2px solid var(--green-pale);
+    border-radius: 14px;
+    padding: 14px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 12px;
+    width: 100%;
+  }
+  .btn-secondary:hover { border-color: var(--green-mid); background: var(--green-frost); }
+
+  /* ── SUCCESS ── */
+  .success-screen {
+    text-align: center;
+    padding: 40px 20px;
+    display: none;
+  }
+  .success-screen.active { display: block; animation: fadeUp 0.5s ease; }
+  .success-icon {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, var(--green-mid), var(--green-deep));
+    border-radius: 50%;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+  }
+  .success-screen h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 40px;
+    font-weight: 300;
+    color: var(--green-deep);
+    margin-bottom: 12px;
+  }
+  .success-screen p { color: var(--text-light); font-size: 15px; margin-bottom: 8px; }
+
+  .wpp-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    margin-top: 24px;
+    transition: all 0.25s;
+    box-shadow: 0 6px 20px rgba(37,211,102,0.3);
+  }
+  .wpp-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(37,211,102,0.4); }
+
+  /* ── AGENDA PANEL ── */
+  .agenda-toggle {
+    position: fixed;
+    bottom: 28px;
+    right: 24px;
+    background: var(--green-deep);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 22px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 8px 28px rgba(45,74,62,0.45);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1000;
+    transition: all 0.25s;
+  }
+  .agenda-toggle:hover { background: var(--green-mid); transform: translateY(-2px); }
+
+  .agenda-panel {
+    position: fixed;
+    top: 0; right: -420px;
+    width: 400px;
+    height: 100vh;
+    background: var(--white);
+    box-shadow: -8px 0 40px rgba(45,74,62,0.15);
+    z-index: 2000;
+    transition: right 0.35s cubic-bezier(0.4,0,0.2,1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .agenda-panel.open { right: 0; }
+
+  .panel-header {
+    background: var(--green-deep);
+    padding: 28px 24px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .panel-header h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 300;
+  }
+  .panel-close {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .panel-close:hover { background: rgba(255,255,255,0.25); }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .appt-card {
+    background: var(--green-frost);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid var(--green-mid);
+    animation: fadeUp 0.3s ease;
+  }
+  .appt-card .appt-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .appt-name { font-weight: 500; font-size: 15px; color: var(--text-dark); }
+  .appt-service { font-size: 13px; color: var(--text-light); }
+  .appt-time {
+    background: var(--green-deep);
+    color: white;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .appt-meta { font-size: 12px; color: var(--text-light); display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .export-btn {
+    width: 100%;
+    margin-top: 8px;
+    background: var(--green-mid);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .export-btn:hover { background: var(--green-deep); }
+
+  .empty-msg {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+    font-size: 14px;
+  }
+  .empty-msg .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,46,40,0.4);
+    z-index: 1999;
+    display: none;
+    backdrop-filter: blur(2px);
+  }
+  .overlay.show { display: block; }
+
+  /* ── FILTERS ── */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 16px 20px 0;
+    flex-shrink: 0;
+  }
+  .filter-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--green-pale);
+    background: var(--green-frost);
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-mid);
+    transition: all 0.2s;
+  }
+  .filter-chip.active { background: var(--green-deep); border-color: var(--green-deep); color: white; }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:440px){
+    .agenda-panel { width: 100%; right: -100%; }
+    .card { padding: 24px 16px; }
+    .steps-bar { gap: 4px; }
+    .step-label { display: none; }
+  }
+
+  .notice {
+    background: var(--green-mist);
+    border-left: 4px solid var(--green-mid);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text-mid);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .notice-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-badge">✦ Beleza & Estética</div>
+  <h1>Bem<br><span>Querer</span></h1>
+  <p class="hero-sub">Estética & Bem Estar — Agende online</p>
+  <button class="hero-cta" onclick="scrollToApp()">
+    <span>✦</span> Agendar meu horário
+  </button>
+  <div class="hero-scroll">Deslize</div>
+</section>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- STEPS -->
+  <div class="steps-bar" id="stepsBar">
+    <div class="step-item active" id="step1">
+      <div class="step-num">1</div>
+      <span class="step-label">Dados</span>
+    </div>
+    <div class="step-item" id="step2">
+      <div class="step-num">2</div>
+      <span class="step-label">Profissional</span>
+    </div>
+    <div class="step-item" id="step3">
+      <div class="step-num">3</div>
+      <span class="step-label">Serviço</span>
+    </div>
+    <div class="step-item" id="step4">
+      <div class="step-num">4</div>
+      <span class="step-label">Horário</span>
+    </div>
+    <div class="step-item" id="step5">
+      <div class="step-num">5</div>
+      <span class="step-label">Confirmar</span>
+    </div>
+  </div>
+
+  <!-- STEP 1: CLIENT -->
+  <div class="card active" id="card1">
+    <div class="section-title">Seus <span>dados</span></div>
+    <div class="section-desc">Precisamos de algumas informações para confirmar seu agendamento</div>
+    <div class="form-grid" style="margin-bottom:14px">
+      <div class="field">
+        <label>Nome completo</label>
+        <input type="text" id="clientName" placeholder="Seu nome" />
+      </div>
+      <div class="field">
+        <label>WhatsApp</label>
+        <input type="tel" id="clientPhone" placeholder="(11) 99999-9999" maxlength="15" />
+      </div>
+    </div>
+    <div class="form-grid full">
+      <div class="field">
+        <label>Observações (opcional)</label>
+        <textarea id="clientObs" rows="2" placeholder="Alergias, preferências..."></textarea>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="goStep(2)">Continuar →</button>
+  </div>
+
+  <!-- STEP 2: PROFESSIONAL -->
+  <div class="card" id="card2">
+    <div class="section-title">Escolha a <span>profissional</span></div>
+    <div class="section-desc">Selecione quem irá te atender</div>
+    <div class="service-grid" id="professionalGrid"></div>
+    <button class="btn-primary" id="btnStep2" onclick="goStep(3)" disabled>Escolher serviço →</button>
+    <button class="btn-secondary" onclick="goStep(1)">← Voltar</button>
+  </div>
+
+  <!-- STEP 3: SERVICE -->
+  <div class="card" id="card5">
+    <div class="section-title">Escolha o <span>serviço</span></div>
+    <div class="section-desc" id="serviceDesc">Selecione o tratamento desejado</div>
+    <div class="notice" id="serviceNotice" style="display:none;margin-bottom:18px;">
+      <span class="notice-icon">💡</span>
+      <div id="serviceNoticeText"></div>
+    </div>
+    <div class="service-grid" id="serviceGrid"></div>
+    <button class="btn-primary" id="btnStep3" onclick="goStep(4)" disabled>Escolher horário →</button>
+    <button class="btn-secondary" onclick="goStep(2)">← Voltar</button>
+  </div>
+
+  <!-- STEP 4: DATE/TIME -->
+  <div class="card" id="card3">
+    <div class="section-title">Escolha a <span>data</span></div>
+    <div class="section-desc">Próximos 14 dias disponíveis</div>
+    <div class="date-grid" id="dateGrid"></div>
+
+    <div class="section-title" style="font-size:28px;margin-top:24px">Horário <span>disponível</span></div>
+    <div class="section-desc" id="timeLabel">Selecione uma profissional para ver as datas e horários</div>
+    <div class="time-grid" id="timeGrid"></div>
+
+    <button class="btn-primary" id="btnStep4" onclick="goStep(5)" disabled>Revisar agendamento →</button>
+    <button class="btn-secondary" onclick="goStep(3)">← Voltar</button>
+  </div>
+
+  <!-- STEP 5: CONFIRM -->
+  <div class="card" id="card4">
+    <div class="section-title">Confirmar <span>agendamento</span></div>
+    <div class="section-desc">Revise as informações antes de confirmar</div>
+
+    <div class="summary-block" id="summaryBlock"></div>
+
+    <div class="notice">
+      <span class="notice-icon">💬</span>
+      Após confirmar, você receberá uma mensagem de confirmação no WhatsApp com todos os detalhes do seu agendamento.
+    </div>
+
+    <div style="margin-bottom:8px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-light)">Forma de pagamento</div>
+    <div class="payment-grid" id="payGrid">
+      <button class="pay-btn" onclick="selectPay(this,'Pix')">💚 Pix</button>
+      <button class="pay-btn" onclick="selectPay(this,'Débito')">💳 Débito</button>
+      <button class="pay-btn" onclick="selectPay(this,'Crédito')">💳 Crédito</button>
+      <button class="pay-btn" onclick="selectPay(this,'Dinheiro')">💵 Dinheiro</button>
+    </div>
+
+    <button class="btn-primary" id="btnConfirm" onclick="confirmBooking()" disabled>✓ Confirmar agendamento</button>
+    <button class="btn-secondary" onclick="goStep(4)">← Voltar</button>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">✓</div>
+    <h2>Agendado com <span style="font-style:italic">sucesso!</span></h2>
+    <p id="successMsg">Seu horário foi reservado.</p>
+    <p style="margin-top:8px;font-size:13px;">Clique abaixo para enviar a confirmação pelo WhatsApp</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px">
+      <a id="wppClientBtn" href="#" target="_blank" class="wpp-btn">
+        <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Enviar confirmação
+      </a>
+      <button onclick="resetApp()" style="padding:14px 24px;background:transparent;border:2px solid var(--green-pale);border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;color:var(--text-mid);transition:all 0.2s" onmouseover="this.style.background='var(--green-frost)'" onmouseout="this.style.background='transparent'">
+        Novo agendamento
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- AGENDA PANEL TOGGLE -->
+<button class="agenda-toggle" onclick="togglePanel()">
+  📅 Agenda das profissionais
+</button>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="togglePanel()"></div>
+
+<!-- AGENDA PANEL -->
+<div class="agenda-panel" id="agendaPanel">
+  <div class="panel-header">
+    <h3>📅 Agenda das Profissionais</h3>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="panel-close" id="logoutBtn" onclick="logoutAgenda()" style="display:none;width:auto;border-radius:18px;padding:0 12px;font-size:12px">Sair</button>
+      <button class="panel-close" onclick="togglePanel()">✕</button>
+    </div>
+  </div>
+  <div class="filter-bar" id="filterBar" style="display:none">
+    <div class="filter-chip active" onclick="filterAppts(this,'all')">Todos</div>
+    <div class="filter-chip" onclick="filterAppts(this,'today')">Hoje</div>
+    <div class="filter-chip" onclick="filterAppts(this,'week')">Esta semana</div>
+  </div>
+  <div class="panel-body" id="apptList"></div>
+  <div id="agendaActions" style="padding:0 20px 20px;flex-shrink:0;display:none">
+    <button class="export-btn" onclick="exportCSV()">⬇ Exportar planilha (.csv)</button>
+    <button class="export-btn" style="background:var(--green-deep);margin-top:8px" onclick="notifyPro()">💬 Resumo via WhatsApp</button>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const CONFIG = {
+  salonName: 'Bem Querer Estética',
+  bookingDurationMinutes: 180,
+  supabaseUrl: 'COLE_AQUI_SUA_SUPABASE_URL',
+  supabaseAnonKey: 'COLE_AQUI_SUA_SUPABASE_ANON_KEY',
+  allowedAgendaEmails: [
+    'anna@bemquerer.local',
+    'shirlei@bemquerer.local'
+  ]
+};
+
+const PROFESSIONALS = [
+  {
+    id: 1,
+    name: 'Anna',
+    role: 'Estética facial, corporal e terapias',
+    phone: '5521964717037',
+    emoji: '🌸',
+    workDays: [1,2,3,4,5], // segunda a sexta
+    workHours: { start: 18, end: 21 }, // 18h às 21h
+    bookingDurationMinutes: 180,
+    services: []
+  },
+  {
+    id: 2,
+    name: 'Shirlei',
+    role: 'Estética completa + cabelo',
+    phone: '5521987721345',
+    emoji: '✨',
+    workDays: [2,3,4,5,6], // terça a sábado
+    workHours: { start: 9, end: 19 }, // 9h às 19h
+    bookingDurationMinutes: 180,
+    services: []
+  }
+];
+
+const SERVICES = [
+  // FACIAL
+  { id:1, name:'Microagulhamento', emoji:'✨', price:200, duration:60, cat:'Facial' },
+  { id:2, name:'Jato de Plasma (a partir)', emoji:'🔥', price:250, duration:60, cat:'Facial' },
+  { id:3, name:'Radiofrequência', emoji:'⚡', price:99, duration:40, cat:'Facial' },
+  { id:4, name:'HIFU (Full Face)', emoji:'🌟', price:500, duration:90, cat:'Facial' },
+  { id:5, name:'Limpeza de Pele', emoji:'🧖‍♀️', price:120, duration:50, cat:'Facial' },
+  { id:6, name:'Revitalização Facial', emoji:'🌿', price:90, duration:40, cat:'Facial' },
+  { id:7, name:'Dermaplaning', emoji:'💎', price:90, duration:40, cat:'Facial' },
+
+  // CORPORAL
+  { id:8, name:'Detox Quântico', emoji:'🧘', price:150, duration:60, cat:'Corporal' },
+  { id:9, name:'Massagem Grega', emoji:'💆‍♀️', price:90, duration:60, cat:'Corporal' },
+  { id:10, name:'Hidrolipoclasia', emoji:'💉', price:300, duration:60, cat:'Corporal' },
+  { id:11, name:'Criolipólise', emoji:'❄️', price:200, duration:60, cat:'Corporal' },
+  { id:12, name:'Drenagem Linfática', emoji:'🌊', price:'Sob consulta', duration:60, cat:'Corporal' },
+
+  // INTRADERMOTERAPIA
+  { id:13, name:'Intradermoterapia Corporal', emoji:'💉', price:150, duration:60, cat:'Intradermoterapia' },
+  { id:14, name:'Papada', emoji:'👤', price:150, duration:40, cat:'Intradermoterapia' },
+  { id:15, name:'Skinbooster', emoji:'💧', price:300, duration:60, cat:'Intradermoterapia' },
+  { id:16, name:'Flacidez', emoji:'📉', price:100, duration:40, cat:'Intradermoterapia' },
+  { id:17, name:'Manchas', emoji:'🌗', price:100, duration:40, cat:'Intradermoterapia' },
+  { id:18, name:'Cicatriz de Acne', emoji:'✨', price:100, duration:40, cat:'Intradermoterapia' },
+
+  // PACOTES
+  { id:19, name:'Radiofrequência + DipCarbox', emoji:'📦', price:450, duration:90, cat:'Pacotes' },
+  { id:20, name:'HIFU Pacote', emoji:'📦', price:1500, duration:120, cat:'Pacotes' },
+  { id:21, name:'CR Pacote', emoji:'📦', price:700, duration:90, cat:'Pacotes' },
+  { id:22, name:'Hidrolipoclasia Pacote', emoji:'📦', price:600, duration:90, cat:'Pacotes' },
+  { id:23, name:'Enzimas', emoji:'💉', price:500, duration:60, cat:'Pacotes' },
+  { id:24, name:'Pós-operatório', emoji:'🩹', price:'Sob consulta', duration:60, cat:'Pacotes' },
+  { id:25, name:'Xô Varizes', emoji:'🦵', price:200, duration:60, cat:'Pacotes' },
+  { id:26, name:'Skinbooster + HIFU', emoji:'📦', price:1700, duration:120, cat:'Pacotes' },
+
+  // CRIO REDUÇÃO
+  { id:27, name:'Tratamento Crio Emagrecimento (4 sessões)', emoji:'❄️', price:2500, duration:120, cat:'Crio Redução' },
+  { id:28, name:'Crio HD', emoji:'❄️', price:2500, duration:120, cat:'Crio Redução' },
+  { id:29, name:'Crio Tônus', emoji:'❄️', price:'A partir de R$ 300,00', duration:60, cat:'Crio Redução' },
+  { id:30, name:'Crio Reperfusão por Placa', emoji:'❄️', price:300, duration:60, cat:'Crio Redução' },
+
+  // HOLÍSTICA
+  { id:31, name:'Ventosa', emoji:'🫧', price:100, duration:40, cat:'Holística' },
+  { id:32, name:'Massagem Relaxante', emoji:'💆', price:150, duration:60, cat:'Holística' },
+  { id:33, name:'Massagem Detox', emoji:'🌿', price:150, duration:60, cat:'Holística' },
+  { id:34, name:'Massagem Redutora', emoji:'🔥', price:150, duration:60, cat:'Holística' },
+  { id:35, name:'Pedras Quentes', emoji:'🪨', price:150, duration:60, cat:'Holística' },
+  { id:36, name:'Candle Massage', emoji:'🕯️', price:120, duration:60, cat:'Holística' },
+  { id:37, name:'Alinhamento de Chakras', emoji:'🧘‍♀️', price:100, duration:60, cat:'Holística' },
+
+  // CABELO (somente Shirlei)
+  { id:38, name:'Corte', emoji:'✂️', price:45, duration:30, cat:'Cabelo' },
+  { id:39, name:'Corte + Escova + Prancha', emoji:'💇‍♀️', price:85, duration:60, cat:'Cabelo' },
+  { id:40, name:'Selagem (Exoplastia)', emoji:'✨', price:'R$ 220,00 a R$ 280,00', duration:120, cat:'Cabelo' },
+  { id:41, name:'Selagem Tradicional', emoji:'✨', price:180, duration:120, cat:'Cabelo' },
+  { id:42, name:'Progressiva com Formol (Lipo)', emoji:'💎', price:'R$ 200,00 a R$ 250,00', duration:120, cat:'Cabelo' },
+  { id:43, name:'Progressiva com Formol Agge', emoji:'💎', price:150, duration:120, cat:'Cabelo' },
+  { id:44, name:'Tratamento Capilar CCRP — Sessão Única', emoji:'💧', price:100, duration:60, cat:'Cabelo' },
+  { id:45, name:'Tratamento Capilar CCRP — Cronograma 4 Sessões', emoji:'📅', price:300, duration:60, cat:'Cabelo' },
+  { id:46, name:'Cadiveu ou Exo — Sessão Única', emoji:'🌿', price:100, duration:60, cat:'Cabelo' },
+  { id:47, name:'Cadiveu ou Exo — Cronograma', emoji:'📅', price:300, duration:60, cat:'Cabelo' },
+  { id:48, name:'Hidratação Capilar Exo + Escova + Prancha', emoji:'💆‍♀️', price:80, duration:60, cat:'Cabelo' },
+  { id:49, name:'Tratamento Capilar Wella ou LOréal', emoji:'🧴', price:150, duration:60, cat:'Cabelo' },
+  { id:50, name:'Tratamento Capilar Wella / Sebastian / LOréal', emoji:'🧴', price:150, duration:60, cat:'Cabelo' },
+  { id:51, name:'Terapia Capilar com Argilas e Óleos Essenciais (4 sessões)', emoji:'🌺', price:350, duration:60, cat:'Cabelo' },
+  { id:52, name:'Serviços de cabelo com ajuste por comprimento', emoji:'📏', price:'Preço variável', duration:60, cat:'Cabelo' }
+];
+
+const ESTHETIC_SERVICE_IDS = SERVICES.filter(s => s.cat !== 'Cabelo').map(s => s.id);
+PROFESSIONALS[0].services = [...ESTHETIC_SERVICE_IDS];
+PROFESSIONALS[1].services = SERVICES.map(s => s.id);
+
+// ── SUPABASE ────────────────────────────────────────────
+const supabaseEnabled = Boolean(
+  window.supabase &&
+  CONFIG.supabaseUrl &&
+  CONFIG.supabaseAnonKey &&
+  !CONFIG.supabaseUrl.includes('COLE_AQUI') &&
+  !CONFIG.supabaseAnonKey.includes('COLE_AQUI')
+);
+
+const supabaseClient = supabaseEnabled
+  ? window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey)
+  : null;
+
+// ── STATE ────────────────────────────────────────────────
+let state = {
+  step: 1,
+  name: '',
+  phone: '',
+  obs: '',
+  professionalId: null,
+  serviceId: null,
+  date: null,
+  time: null,
+  payment: null
+};
+
+let appointments = [];
+let filterMode = 'all';
+let agendaAuthenticated = false;
+let agendaUser = null;
+
+// ── HELPERS ──────────────────────────────────────────────
+function fmt(n){ return n.toString().padStart(2,'0'); }
+
+function fmtDate(d){
+  if(!d) return '';
+  const [y,m,day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+
+function fmtPrice(v){
+  if(v === null || v === undefined || v === '') return 'Sob consulta';
+  if(typeof v === 'number') return 'R$ ' + v.toFixed(2).replace('.', ',');
+  return String(v);
+}
+
+function toPriceText(v){
+  return typeof v === 'number' ? fmtPrice(v) : String(v || 'Sob consulta');
+}
+
+function addMinutes(timeStr, minutesToAdd){
+  const [hour, minute] = String(timeStr).split(':').map(Number);
+  const total = (hour * 60) + minute + minutesToAdd;
+  return `${fmt(Math.floor(total / 60))}:${fmt(total % 60)}`;
+}
+
+function formatTimeRange(startTime, durationMinutes){
+  return `${startTime} às ${addMinutes(startTime, durationMinutes)}`;
+}
+
+function getProfessional(){ return PROFESSIONALS.find(p => p.id === state.professionalId); }
+function getProfessionalById(id){ return PROFESSIONALS.find(p => p.id === id); }
+function getService(){ return SERVICES.find(s => s.id === state.serviceId); }
+function getServiceById(id){ return SERVICES.find(s => s.id === id); }
+
+function escapeHtml(value){
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function storageFallbackLoad(){
+  appointments = JSON.parse(localStorage.getItem('bq_appointments') || '[]');
+}
+
+function storageFallbackSave(){
+  localStorage.setItem('bq_appointments', JSON.stringify(appointments));
+}
+
+function normalizeRow(row){
+  return {
+    id: row.id,
+    name: row.client_name,
+    phone: row.client_phone,
+    obs: row.client_obs || '',
+    professionalId: row.professional_id,
+    professionalName: row.professional_name,
+    professionalPhone: row.professional_phone,
+    serviceId: row.service_id,
+    serviceName: row.service_name,
+    serviceEmoji: row.service_emoji,
+    price: row.price_text,
+    duration: row.duration_minutes,
+    endTime: row.end_time,
+    date: row.appointment_date,
+    time: row.start_time,
+    payment: row.payment,
+    createdAt: row.created_at
+  };
+}
+
+function isAgendaEmailAllowed(email){
+  return CONFIG.allowedAgendaEmails.map(v => String(v).toLowerCase()).includes(String(email || '').toLowerCase());
+}
+
+async function loadAppointments(fullAccess = false){
+  if(!supabaseEnabled){
+    storageFallbackLoad();
+    return;
+  }
+
+  if(fullAccess){
+    const { data, error } = await supabaseClient
+      .from('appointments')
+      .select('*')
+      .order('appointment_date', { ascending: true })
+      .order('start_time', { ascending: true });
+
+    if(error){
+      console.error(error);
+      alert('Não foi possível carregar a agenda protegida. Verifique o login e as políticas do Supabase.');
+      appointments = [];
+      return;
+    }
+
+    appointments = (data || []).map(normalizeRow);
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .rpc('get_public_appointments');
+
+  if(error){
+    console.error(error);
+    alert('Não foi possível carregar os horários ocupados do Supabase. Verifique a URL, a chave, a função pública e a tabela.');
+    appointments = [];
+    return;
+  }
+
+  appointments = (data || []).map(row => ({
+    id: row.id || null,
+    professionalId: row.professional_id,
+    date: row.appointment_date,
+    time: row.start_time,
+    endTime: row.end_time,
+    duration: row.duration_minutes,
+    professionalName: row.professional_name || '',
+    name: '',
+    phone: '',
+    obs: '',
+    serviceId: null,
+    serviceName: '',
+    serviceEmoji: '',
+    price: '',
+    payment: '',
+    createdAt: row.created_at || null
+  }));
+}
+
+async function bootstrapSupabaseAuth(){
+  if(!supabaseEnabled){
+    storageFallbackLoad();
+    return;
+  }
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  agendaUser = session?.user || null;
+  agendaAuthenticated = !!agendaUser && isAgendaEmailAllowed(agendaUser.email);
+  await loadAppointments(agendaAuthenticated);
+
+  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+    agendaUser = session?.user || null;
+    agendaAuthenticated = !!agendaUser && isAgendaEmailAllowed(agendaUser.email);
+    await loadAppointments(agendaAuthenticated);
+    if(document.getElementById('agendaPanel')?.classList.contains('open')){
+      renderAgendaAccess();
+    } else if(state.date){
+      buildTimeSlots(state.date);
+    }
+  });
+}
+
+async function saveAppointment(appt){
+  if(!supabaseEnabled){
+    appointments.push(appt);
+    storageFallbackSave();
+    return appt;
+  }
+
+  const payload = {
+    professional_id: appt.professionalId,
+    professional_name: appt.professionalName,
+    professional_phone: appt.professionalPhone,
+    client_name: appt.name,
+    client_phone: appt.phone,
+    client_obs: appt.obs || '',
+    service_id: appt.serviceId,
+    service_name: appt.serviceName,
+    service_emoji: appt.serviceEmoji,
+    price_text: toPriceText(appt.price),
+    duration_minutes: appt.duration,
+    appointment_date: appt.date,
+    start_time: appt.time,
+    end_time: appt.endTime,
+    payment: appt.payment
+  };
+
+  const { error } = await supabaseClient
+    .from('appointments')
+    .insert(payload);
+
+  if(error){
+    throw error;
+  }
+
+  return appt;
+}
+
+async function refreshAppointments(){
+  await loadAppointments(agendaAuthenticated);
+  renderApptList();
+  if(state.date){
+    buildTimeSlots(state.date);
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────
+document.getElementById('clientPhone').addEventListener('input', function(){
+  let v = this.value.replace(/\D/g, '');
+  if(v.length > 11) v = v.slice(0,11);
+  if(v.length >= 7) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+  else if(v.length >= 3) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+  this.value = v;
+});
+
+async function initApp(){
+  buildProfessionalGrid();
+  buildServiceGrid();
+  buildDateGrid();
+  await bootstrapSupabaseAuth();
+  renderApptList();
+}
+initApp();
+
+function buildProfessionalGrid(){
+  const grid = document.getElementById('professionalGrid');
+  grid.innerHTML = PROFESSIONALS.map(p => `
+    <div class="service-card" onclick="selectProfessional(${p.id})" id="pc${p.id}">
+      <div class="service-emoji">${p.emoji}</div>
+      <div class="service-name">${escapeHtml(p.name)}</div>
+      <div class="service-duration">${escapeHtml(p.role)}</div>
+      <div class="service-price" style="font-size:18px">${SERVICES.filter(s => p.services.includes(s.id)).length} serviços disponíveis</div>
+    </div>
+  `).join('');
+}
+
+function buildServiceGrid(){
+  const grid = document.getElementById('serviceGrid');
+  const desc = document.getElementById('serviceDesc');
+  const notice = document.getElementById('serviceNotice');
+  const noticeText = document.getElementById('serviceNoticeText');
+  const pro = getProfessional();
+
+  if(!pro){
+    grid.innerHTML = '';
+    desc.textContent = 'Selecione primeiro a profissional';
+    notice.style.display = 'none';
+    return;
+  }
+
+  const availableServices = SERVICES.filter(s => pro.services.includes(s.id));
+  desc.textContent = `Serviços disponíveis com ${pro.name}`;
+  notice.style.display = 'flex';
+  noticeText.textContent = pro.name === 'Anna'
+    ? 'Anna atende apenas estética de segunda a sexta, das 18h às 21h, com 1 agendamento por dia.'
+    : 'Shirlei atende estética e cabelo de terça a sábado, das 9h às 19h, com horários em blocos de 3 horas.';
+
+  grid.innerHTML = availableServices.map(s => `
+    <div class="service-card" onclick="selectService(${s.id})" id="sc${s.id}">
+      <div class="service-emoji">${s.emoji}</div>
+      <div class="service-name">${escapeHtml(s.name)}</div>
+      <div class="service-duration">⏱ ${pro.bookingDurationMinutes} min · ${escapeHtml(s.cat)}</div>
+      <div class="service-price">${escapeHtml(fmtPrice(s.price))}</div>
+    </div>
+  `).join('');
+}
+
+function selectProfessional(id){
+  document.querySelectorAll('#professionalGrid .service-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('pc' + id).classList.add('selected');
+
+  state.professionalId = id;
+  state.serviceId = null;
+  state.date = null;
+  state.time = null;
+  state.payment = null;
+
+  document.getElementById('btnStep2').disabled = false;
+  document.getElementById('btnStep3').disabled = true;
+  document.getElementById('btnStep4').disabled = true;
+  document.getElementById('btnConfirm').disabled = true;
+  document.querySelectorAll('.pay-btn').forEach(c => c.classList.remove('selected'));
+
+  buildServiceGrid();
+  buildDateGrid();
+  document.getElementById('timeGrid').innerHTML = '';
+  document.getElementById('timeLabel').textContent = 'Selecione uma data para ver os horários';
+}
+
+function selectService(id){
+  document.querySelectorAll('#serviceGrid .service-card').forEach(c => c.classList.remove('selected'));
+  const card = document.getElementById('sc' + id);
+  if(card) card.classList.add('selected');
+  state.serviceId = id;
+  document.getElementById('btnStep3').disabled = false;
+}
+
+function buildDateGrid(){
+  const grid = document.getElementById('dateGrid');
+  const pro = getProfessional();
+  const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const today = new Date();
+  let html = '';
+
+  for(let i = 0; i < 14; i++){
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const dow = d.getDay();
+    const key = `${d.getFullYear()}-${fmt(d.getMonth()+1)}-${fmt(d.getDate())}`;
+    const disabled = !pro || !pro.workDays.includes(dow);
+
+    html += `
+      <button class="date-btn${disabled ? ' disabled' : ''}" id="db_${key}" data-date="${key}" ${disabled ? 'disabled' : ''}>
+        <span class="date-day">${days[dow]}</span>
+        <span class="date-num">${d.getDate()}</span>
+        <span class="date-month">${months[d.getMonth()]}</span>
+      </button>
+    `;
+  }
+
+  grid.innerHTML = html;
+  grid.querySelectorAll('.date-btn:not(.disabled)').forEach(btn => {
+    btn.addEventListener('click', () => selectDate(btn.dataset.date));
+  });
+}
+
+function selectDate(key){
+  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('selected'));
+  const btn = document.getElementById('db_' + key);
+  if(btn) btn.classList.add('selected');
+  state.date = key;
+  state.time = null;
+  document.getElementById('btnStep4').disabled = true;
+  buildTimeSlots(key);
+}
+
+function buildTimeSlots(dateKey){
+  const grid = document.getElementById('timeGrid');
+  const label = document.getElementById('timeLabel');
+  const pro = getProfessional();
+
+  if(!pro){
+    grid.innerHTML = '';
+    label.textContent = 'Selecione uma profissional para ver os horários';
+    return;
+  }
+
+  label.textContent = `Horários disponíveis para ${fmtDate(dateKey)} com ${pro.name}`;
+
+  const booked = appointments
+    .filter(a => Number(a.professionalId) === Number(pro.id) && a.date === dateKey)
+    .map(a => a.time);
+
+  const slots = [];
+  const slotHours = Math.floor((pro.bookingDurationMinutes || CONFIG.bookingDurationMinutes) / 60);
+
+  for(let hour = pro.workHours.start; hour + slotHours <= pro.workHours.end; hour += slotHours){
+    slots.push(`${fmt(hour)}:00`);
+  }
+
+  grid.innerHTML = slots.map(t => {
+    const busy = booked.includes(t);
+    return `
+      <button class="time-btn${busy ? ' busy' : ''}" ${busy ? 'disabled' : ''} onclick="selectTime('${t}')" id="tb_${t.replace(':','')}">
+        ${formatTimeRange(t, pro.bookingDurationMinutes || CONFIG.bookingDurationMinutes)}
+      </button>
+    `;
+  }).join('');
+}
+
+function selectTime(t){
+  document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+  const btn = document.getElementById('tb_' + t.replace(':',''));
+  if(btn) btn.classList.add('selected');
+  state.time = t;
+  document.getElementById('btnStep4').disabled = false;
+}
+
+function selectPay(el, method){
+  document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.payment = method;
+  document.getElementById('btnConfirm').disabled = false;
+}
+
+// ── STEPS ────────────────────────────────────────────────
+function goStep(n){
+  if(n === 2){
+    const nm = document.getElementById('clientName').value.trim();
+    const ph = document.getElementById('clientPhone').value.trim();
+    if(!nm || !ph){
+      alert('Preencha seu nome e WhatsApp para continuar.');
+      return;
+    }
+    state.name = nm;
+    state.phone = ph;
+    state.obs = document.getElementById('clientObs').value.trim();
+  }
+
+  if(n === 3 && !state.professionalId){
+    alert('Selecione a profissional.');
+    return;
+  }
+
+  if(n === 4 && !state.serviceId){
+    alert('Selecione um serviço.');
+    return;
+  }
+
+  if(n === 5){
+    if(!state.date || !state.time){
+      alert('Selecione data e horário.');
+      return;
+    }
+    buildSummary();
+  }
+
+  const stepToCard = { 1:'card1', 2:'card2', 3:'card5', 4:'card3', 5:'card4' };
+
+  for(let i = 1; i <= 5; i++){
+    const cardId = stepToCard[i];
+    const card = document.getElementById(cardId);
+    const si = document.getElementById('step' + i);
+    if(card) card.classList.remove('active');
+    if(si){
+      si.classList.remove('active', 'done');
+      if(i < n) si.classList.add('done');
+      if(i === n) si.classList.add('active');
+    }
+  }
+
+  document.getElementById(stepToCard[n]).classList.add('active');
+  state.step = n;
+  window.scrollTo({ top: document.getElementById('app').offsetTop - 20, behavior:'smooth' });
+}
+
+function buildSummary(){
+  const svc = getService();
+  const pro = getProfessional();
+  const duration = pro?.bookingDurationMinutes || CONFIG.bookingDurationMinutes;
+  document.getElementById('summaryBlock').innerHTML = `
+    <div class="summary-row">
+      <span class="summary-label">Cliente</span>
+      <span class="summary-value">${escapeHtml(state.name)}</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">WhatsApp</span>
+      <span class="summary-value">${escapeHtml(state.phone)}</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Profissional</span>
+      <span class="summary-value">${pro ? `${pro.emoji} ${escapeHtml(pro.name)}` : '—'}</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Serviço</span>
+      <span class="summary-value">${svc.emoji} ${escapeHtml(svc.name)}</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Data & Hora</span>
+      <span class="summary-value">${fmtDate(state.date)} · ${formatTimeRange(state.time, duration)}</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Duração</span>
+      <span class="summary-value">${duration} minutos</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Valor</span>
+      <span class="summary-price">${escapeHtml(fmtPrice(svc.price))}</span>
+    </div>
+    ${state.obs ? `
+    <div class="summary-row">
+      <span class="summary-label">Obs.</span>
+      <span class="summary-value">${escapeHtml(state.obs)}</span>
+    </div>` : ''}
+  `;
+}
+
+// ── CONFIRM ──────────────────────────────────────────────
+async function confirmBooking(){
+  const btn = document.getElementById('btnConfirm');
+  const svc = getService();
+  const pro = getProfessional();
+  const duration = pro.bookingDurationMinutes || CONFIG.bookingDurationMinutes;
+
+  if(!state.payment){
+    alert('Selecione a forma de pagamento.');
+    return;
+  }
+
+  const appt = {
+    id: Date.now(),
+    name: state.name,
+    phone: state.phone,
+    obs: state.obs,
+    professionalId: pro.id,
+    professionalName: pro.name,
+    professionalPhone: pro.phone,
+    serviceId: state.serviceId,
+    serviceName: svc.name,
+    serviceEmoji: svc.emoji,
+    price: svc.price,
+    duration,
+    endTime: addMinutes(state.time, duration),
+    date: state.date,
+    time: state.time,
+    payment: state.payment,
+    createdAt: new Date().toISOString()
+  };
+
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  try {
+    const savedAppt = await saveAppointment(appt);
+
+    const clientMsg = encodeURIComponent(
+      `Olá! 🌿 Agendamento confirmado na *${CONFIG.salonName}*!\n\n` +
+      `👩‍⚕️ Profissional: *${pro.name}*\n` +
+      `✦ Serviço: *${svc.emoji} ${svc.name}*\n` +
+      `📅 Data: *${fmtDate(savedAppt.date)} · ${formatTimeRange(savedAppt.time, savedAppt.duration)}*\n` +
+      `⏱ Duração: *${savedAppt.duration} min*\n` +
+      `💰 Valor: *${fmtPrice(savedAppt.price)}*\n` +
+      `💳 Pagamento: *${savedAppt.payment}*\n` +
+      (savedAppt.obs ? `📝 Obs: ${savedAppt.obs}\n` : '') +
+      `\nNos vemos em breve! 💚`
+    );
+
+    const rawPhone = state.phone.replace(/\D/g, '');
+    const wppPhone = `55${rawPhone}`;
+    document.getElementById('wppClientBtn').href = `https://wa.me/${wppPhone}?text=${clientMsg}`;
+
+    document.getElementById('card4').classList.remove('active');
+    document.getElementById('successScreen').classList.add('active');
+    document.getElementById('successMsg').textContent =
+      `${svc.emoji} ${svc.name} com ${pro.name} agendado para ${fmtDate(savedAppt.date)} · ${formatTimeRange(savedAppt.time, savedAppt.duration)}.`;
+
+    notifyProAuto(savedAppt);
+    renderApptList();
+  } catch (error) {
+    console.error(error);
+    const duplicate = String(error?.message || '').toLowerCase().includes('duplicate') || error?.code === '23505';
+    alert(duplicate
+      ? 'Esse horário acabou de ser reservado. Escolha outro horário.'
+      : 'Não foi possível salvar no Supabase. Verifique a URL, a chave e a tabela appointments.');
+    await refreshAppointments();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✓ Confirmar agendamento';
+  }
+}
+
+function notifyProAuto(appt){
+  const msg = encodeURIComponent(
+    `🌿 *Novo agendamento — ${CONFIG.salonName}*\n\n` +
+    `👩‍⚕️ *Profissional:* ${appt.professionalName}\n` +
+    `👤 *Cliente:* ${appt.name}\n` +
+    `📱 *Tel:* ${appt.phone}\n` +
+    `✦ *Serviço:* ${appt.serviceEmoji} ${appt.serviceName}\n` +
+    `📅 *Data:* ${fmtDate(appt.date)} · ${appt.time} às ${appt.endTime}\n` +
+    `⏱ *Duração:* ${appt.duration} min\n` +
+    `💰 *Valor:* ${fmtPrice(appt.price)}\n` +
+    `💳 *Pagamento:* ${appt.payment}\n` +
+    (appt.obs ? `📝 *Obs:* ${appt.obs}\n` : '') +
+    `\n_Agendado via site_`
+  );
+  window.open(`https://wa.me/${appt.professionalPhone}?text=${msg}`, '_blank');
+}
+
+function notifyPro(){
+  const today = new Date().toISOString().split('T')[0];
+  const todayAppts = appointments.filter(a => a.date === today);
+  if(!todayAppts.length){
+    alert('Nenhum agendamento para hoje.');
+    return;
+  }
+
+  const byPro = {};
+  todayAppts.forEach(a => {
+    if(!byPro[a.professionalId]) byPro[a.professionalId] = [];
+    byPro[a.professionalId].push(a);
+  });
+
+  Object.values(byPro).forEach(group => {
+    const first = group[0];
+    let msg = `🌿 *Agenda de hoje — ${CONFIG.salonName}*\n` +
+              `👩‍⚕️ *Profissional:* ${first.professionalName}\n\n`;
+
+    group.sort((a,b) => a.time.localeCompare(b.time)).forEach(a => {
+      msg += `▸ ${a.time} às ${a.endTime || addMinutes(a.time, a.duration || CONFIG.bookingDurationMinutes)} — ${a.serviceEmoji} ${a.serviceName} — ${a.name}\n`;
+    });
+
+    msg += `\n_Total: ${group.length} agendamentos_`;
+    window.open(`https://wa.me/${first.professionalPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  });
+}
+
+// ── AGENDA PANEL ──────────────────────────────────────────
+function togglePanel(){
+  const panel = document.getElementById('agendaPanel');
+  const overlay = document.getElementById('overlay');
+  const open = panel.classList.toggle('open');
+  overlay.classList.toggle('show', open);
+  if(open) renderAgendaAccess();
+}
+
+function renderAgendaAccess(){
+  const list = document.getElementById('apptList');
+  const filterBar = document.getElementById('filterBar');
+  const actions = document.getElementById('agendaActions');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  if(!agendaAuthenticated){
+    filterBar.style.display = 'none';
+    actions.style.display = 'none';
+    logoutBtn.style.display = 'none';
+    list.innerHTML = `
+      <div class="summary-block" style="margin:8px 0 0">
+        <div class="section-title" style="font-size:28px;margin-bottom:6px">Acesso <span>restrito</span></div>
+        <div class="section-desc" style="margin-bottom:18px">
+          Somente contas autorizadas da Anna e da Shirlei podem visualizar a agenda.
+        </div>
+        <div class="form-grid full">
+          <div class="field">
+            <label>E-mail da agenda</label>
+            <input type="email" id="agendaEmail" placeholder="ex.: anna@bemquerer.local" />
+          </div>
+          <div class="field">
+            <label>Senha</label>
+            <input type="password" id="agendaPass" placeholder="Digite a senha" />
+          </div>
+        </div>
+        <button class="btn-primary" style="margin-top:18px" onclick="loginAgenda()">Entrar na agenda</button>
+      </div>
+    `;
+    setTimeout(() => {
+      const emailInput = document.getElementById('agendaEmail');
+      const passInput = document.getElementById('agendaPass');
+      if(passInput){
+        passInput.addEventListener('keydown', function(e){ if(e.key === 'Enter') loginAgenda(); }, { once:true });
+      }
+      if(emailInput){ emailInput.focus(); }
+    }, 50);
+    return;
+  }
+
+  filterBar.style.display = 'flex';
+  actions.style.display = 'block';
+  logoutBtn.style.display = 'inline-flex';
+  refreshAppointments();
+}
+
+async function loginAgenda(){
+  if(!supabaseEnabled){
+    alert('Configure primeiro a URL e a chave pública do Supabase no código.');
+    return;
+  }
+
+  const email = (document.getElementById('agendaEmail')?.value || '').trim().toLowerCase();
+  const pass = document.getElementById('agendaPass')?.value || '';
+
+  if(!email || !pass){
+    alert('Preencha e-mail e senha.');
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password: pass
+  });
+
+  if(error){
+    alert('E-mail ou senha inválidos.');
+    return;
+  }
+
+  const signedUser = data?.user || null;
+  if(!signedUser || !isAgendaEmailAllowed(signedUser.email)){
+    await supabaseClient.auth.signOut();
+    alert('Essa conta não tem permissão para acessar a agenda.');
+    return;
+  }
+
+  agendaUser = signedUser;
+  agendaAuthenticated = true;
+  renderAgendaAccess();
+}
+
+async function logoutAgenda(){
+  agendaAuthenticated = false;
+  agendaUser = null;
+  if(supabaseEnabled){
+    await supabaseClient.auth.signOut();
+  }
+  await loadAppointments(false);
+  renderAgendaAccess();
+}
+
+function filterAppts(el, mode){
+  filterMode = mode;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderApptList();
+}
+
+function renderApptList(){
+  const list = document.getElementById('apptList');
+  const today = new Date().toISOString().split('T')[0];
+  const weekEnd = new Date();
+  weekEnd.setDate(weekEnd.getDate() + 7);
+  const weekEndKey = weekEnd.toISOString().split('T')[0];
+
+  let filtered = [...appointments];
+  if(filterMode === 'today') filtered = filtered.filter(a => a.date === today);
+  if(filterMode === 'week') filtered = filtered.filter(a => a.date >= today && a.date <= weekEndKey);
+  filtered.sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+
+  if(!filtered.length){
+    list.innerHTML = `<div class="empty-msg"><div class="empty-icon">📅</div>Nenhum agendamento encontrado.</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(a => `
+    <div class="appt-card">
+      <div class="appt-top">
+        <div>
+          <div class="appt-name">${escapeHtml(a.name)}</div>
+          <div class="appt-service">${escapeHtml(a.professionalName)} · ${a.serviceEmoji} ${escapeHtml(a.serviceName)}</div>
+        </div>
+        <div class="appt-time">${escapeHtml(a.time)}–${escapeHtml(a.endTime || addMinutes(a.time, a.duration || CONFIG.bookingDurationMinutes))}</div>
+      </div>
+      <div class="appt-meta">
+        <span>📅 ${fmtDate(a.date)}</span>
+        <span>💰 ${escapeHtml(fmtPrice(a.price))}</span>
+        <span>💳 ${escapeHtml(a.payment || '—')}</span>
+        <span>⏱ ${a.duration || CONFIG.bookingDurationMinutes}min</span>
+      </div>
+      ${a.obs ? `<div style="margin-top:6px;font-size:12px;color:var(--text-light)">📝 ${escapeHtml(a.obs)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────
+function exportCSV(){
+  if(!appointments.length){
+    alert('Sem agendamentos para exportar.');
+    return;
+  }
+
+  const cols = ['ID','Profissional','Telefone Profissional','Nome','Telefone','Serviço','Data','Hora','Fim','Duração (min)','Valor','Pagamento','Observações','Criado em'];
+  const rows = appointments.map(a => [
+    a.id,
+    a.professionalName,
+    a.professionalPhone,
+    a.name,
+    a.phone,
+    a.serviceName,
+    fmtDate(a.date),
+    a.time,
+    a.endTime || addMinutes(a.time, a.duration || CONFIG.bookingDurationMinutes),
+    a.duration,
+    fmtPrice(a.price),
+    a.payment || '',
+    a.obs || '',
+    a.createdAt ? new Date(a.createdAt).toLocaleString('pt-BR') : ''
+  ]);
+
+  const csv = cols.join(';') + '\n' + rows.map(r => r.map(v => `"${String(v).replaceAll('"', '""')}"`).join(';')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'agendamentos_bem_querer_estetica.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── RESET ─────────────────────────────────────────────────
+function resetApp(){
+  state = {
+    step: 1,
+    name: '',
+    phone: '',
+    obs: '',
+    professionalId: null,
+    serviceId: null,
+    date: null,
+    time: null,
+    payment: null
+  };
+
+  document.getElementById('successScreen').classList.remove('active');
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientPhone').value = '';
+  document.getElementById('clientObs').value = '';
+  document.querySelectorAll('#professionalGrid .service-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('#serviceGrid .service-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('btnStep2').disabled = true;
+  document.getElementById('btnStep3').disabled = true;
+  document.getElementById('btnStep4').disabled = true;
+  document.getElementById('btnConfirm').disabled = true;
+  document.querySelectorAll('.pay-btn').forEach(c => c.classList.remove('selected'));
+
+  buildServiceGrid();
+  buildDateGrid();
+  document.getElementById('timeGrid').innerHTML = '';
+  document.getElementById('timeLabel').textContent = 'Selecione uma profissional para ver as datas e horários';
+
+  ['card1','card2','card3','card4','card5'].forEach(id => {
+    const card = document.getElementById(id);
+    if(card) card.classList.remove('active');
+  });
+
+  for(let i = 1; i <= 5; i++){
+    const step = document.getElementById('step' + i);
+    if(step) step.classList.remove('active', 'done');
+  }
+
+  document.getElementById('card1').classList.add('active');
+  document.getElementById('step1').classList.add('active');
+  window.scrollTo({ top: document.getElementById('app').offsetTop - 20, behavior:'smooth' });
+}
+
+function scrollToApp(){
+  document.getElementById('app').scrollIntoView({ behavior:'smooth' });
+}
+</script>
+
+</body>
+</html>
