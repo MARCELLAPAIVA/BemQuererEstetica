@@ -678,6 +678,51 @@
   }
   .filter-chip.active { background: var(--green-deep); border-color: var(--green-deep); color: white; }
 
+
+  .admin-card {
+    background: var(--green-frost);
+    border: 1px solid var(--green-mist);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 14px;
+  }
+  .admin-card h4 {
+    font-size: 15px;
+    color: var(--green-deep);
+    margin-bottom: 6px;
+  }
+  .admin-card p {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 12px;
+  }
+  .day-toggle-grid {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .day-toggle {
+    border: 1.5px solid var(--green-pale);
+    background: var(--white);
+    color: var(--text-mid);
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .day-toggle.active {
+    background: var(--green-deep);
+    border-color: var(--green-deep);
+    color: white;
+  }
+  .mini-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
   /* ── RESPONSIVE ── */
   @media(max-width:440px){
     .agenda-panel { width: 100%; right: -100%; }
@@ -828,12 +873,12 @@
   <div class="success-screen" id="successScreen">
     <div class="success-icon">✓</div>
     <h2>Agendado com <span style="font-style:italic">sucesso!</span></h2>
-    <p id="successMsg">Seu horário foi reservado.</p>
-    <p style="margin-top:8px;font-size:13px;">Clique abaixo para enviar a confirmação pelo WhatsApp</p>
+    <p id="successMsg">Seu horário foi reservado e enviado para a profissional.</p>
+    <p style="margin-top:8px;font-size:13px;">Clique abaixo para enviar os detalhes para a profissional pelo WhatsApp</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px">
       <a id="wppClientBtn" href="#" target="_blank" class="wpp-btn">
         <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        Enviar confirmação
+        Enviar para a profissional
       </a>
       <button onclick="resetApp()" style="padding:14px 24px;background:transparent;border:2px solid var(--green-pale);border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;color:var(--text-mid);transition:all 0.2s" onmouseover="this.style.background='var(--green-frost)'" onmouseout="this.style.background='transparent'">
         Novo agendamento
@@ -865,6 +910,7 @@
     <div class="filter-chip" onclick="filterAppts(this,'today')">Hoje</div>
     <div class="filter-chip" onclick="filterAppts(this,'week')">Esta semana</div>
   </div>
+  <div id="availabilityAdmin" style="display:none;padding:0 20px 12px;"></div>
   <div class="panel-body" id="apptList"></div>
   <div id="agendaActions" style="padding:0 20px 20px;flex-shrink:0;display:none">
     <button class="export-btn" onclick="exportCSV()">⬇ Exportar planilha (.csv)</button>
@@ -882,9 +928,9 @@ const CONFIG = {
   supabaseUrl: 'https://kzwigtrqqztagbhvhmny.supabase.co',
   supabaseAnonKey: 'sb_publishable_XbAl9ORkGlAZFbndp7hH4w_MF_MFEwA',
   allowedAgendaEmails: [
-  'anna@bemquerer.com',
-  'shirlei@bemquerer.com'
-]
+    'anna@bemquerer.com',
+    'shirlei@bemquerer.com'
+  ]
 };
 
 const PROFESSIONALS = [
@@ -980,6 +1026,17 @@ const SERVICES = [
   { id:52, name:'Serviços de cabelo com ajuste por comprimento', emoji:'📏', price:'Preço variável', duration:60, cat:'Cabelo' }
 ];
 
+
+const DAY_OPTIONS = [
+  { value: 0, label: 'Dom' },
+  { value: 1, label: 'Seg' },
+  { value: 2, label: 'Ter' },
+  { value: 3, label: 'Qua' },
+  { value: 4, label: 'Qui' },
+  { value: 5, label: 'Sex' },
+  { value: 6, label: 'Sáb' }
+];
+
 const ESTHETIC_SERVICE_IDS = SERVICES.filter(s => s.cat !== 'Cabelo').map(s => s.id);
 PROFESSIONALS[0].services = [...ESTHETIC_SERVICE_IDS];
 PROFESSIONALS[1].services = SERVICES.map(s => s.id);
@@ -1011,6 +1068,7 @@ let state = {
 };
 
 let appointments = [];
+let professionalAvailability = {};
 let filterMode = 'all';
 let agendaAuthenticated = false;
 let agendaUser = null;
@@ -1056,6 +1114,96 @@ function escapeHtml(value){
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
+}
+
+
+function getDefaultAvailabilityMap(){
+  const map = {};
+  PROFESSIONALS.forEach(p => {
+    map[p.id] = {
+      professionalId: p.id,
+      workDays: [...p.workDays],
+      startHour: p.workHours.start,
+      endHour: p.workHours.end,
+      bookingDurationMinutes: p.bookingDurationMinutes || CONFIG.bookingDurationMinutes
+    };
+  });
+  return map;
+}
+
+function applyAvailabilityMap(){
+  PROFESSIONALS.forEach(p => {
+    const saved = professionalAvailability[p.id];
+    if(!saved) return;
+    p.workDays = [...saved.workDays];
+    p.workHours = { start: Number(saved.startHour), end: Number(saved.endHour) };
+    p.bookingDurationMinutes = Number(saved.bookingDurationMinutes || CONFIG.bookingDurationMinutes);
+  });
+}
+
+function normalizeAvailabilityRow(row){
+  return {
+    professionalId: Number(row.professional_id),
+    workDays: Array.isArray(row.work_days) ? row.work_days.map(Number).sort((a,b) => a-b) : [],
+    startHour: Number(row.start_hour),
+    endHour: Number(row.end_hour),
+    bookingDurationMinutes: Number(row.booking_duration_minutes || CONFIG.bookingDurationMinutes)
+  };
+}
+
+async function loadProfessionalAvailability(){
+  professionalAvailability = getDefaultAvailabilityMap();
+
+  if(!supabaseEnabled){
+    const local = JSON.parse(localStorage.getItem('bq_professional_availability') || '{}');
+    Object.keys(local).forEach(k => professionalAvailability[k] = local[k]);
+    applyAvailabilityMap();
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('professional_availability')
+    .select('*');
+
+  if(error){
+    console.warn('Sem tabela professional_availability configurada ainda.', error.message || error);
+    applyAvailabilityMap();
+    return;
+  }
+
+  (data || []).forEach(row => {
+    const parsed = normalizeAvailabilityRow(row);
+    professionalAvailability[parsed.professionalId] = parsed;
+  });
+
+  applyAvailabilityMap();
+}
+
+async function saveProfessionalAvailability(professionalId, payload){
+  const record = {
+    professional_id: professionalId,
+    professional_name: getProfessionalById(professionalId)?.name || '',
+    work_days: payload.workDays,
+    start_hour: payload.startHour,
+    end_hour: payload.endHour,
+    booking_duration_minutes: payload.bookingDurationMinutes || CONFIG.bookingDurationMinutes
+  };
+
+  if(!supabaseEnabled){
+    professionalAvailability[professionalId] = normalizeAvailabilityRow(record);
+    localStorage.setItem('bq_professional_availability', JSON.stringify(professionalAvailability));
+    applyAvailabilityMap();
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('professional_availability')
+    .upsert(record, { onConflict: 'professional_id' });
+
+  if(error) throw error;
+
+  professionalAvailability[professionalId] = normalizeAvailabilityRow(record);
+  applyAvailabilityMap();
 }
 
 function storageFallbackLoad(){
@@ -1162,7 +1310,7 @@ async function bootstrapSupabaseAuth(){
     agendaAuthenticated = !!agendaUser && isAgendaEmailAllowed(agendaUser.email);
     await loadAppointments(agendaAuthenticated);
     if(document.getElementById('agendaPanel')?.classList.contains('open')){
-      renderAgendaAccess();
+      await renderAgendaAccess();
     } else if(state.date){
       buildTimeSlots(state.date);
     }
@@ -1213,6 +1361,52 @@ async function refreshAppointments(){
   }
 }
 
+function setupRealtimeAppointments(){
+  if(!supabaseEnabled || appointmentsSubscription) return;
+  appointmentsSubscription = supabaseClient
+    .channel('appointments-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, async () => {
+      await refreshAppointments();
+      if(document.getElementById('agendaPanel')?.classList.contains('open') && agendaAuthenticated){
+        renderApptList();
+      }
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'professional_availability' }, async () => {
+      await loadProfessionalAvailability();
+      buildDateGrid();
+      if(state.date){
+        buildTimeSlots(state.date);
+      }
+      if(document.getElementById('agendaPanel')?.classList.contains('open') && agendaAuthenticated){
+        renderAvailabilityAdmin();
+      }
+    })
+    .subscribe();
+}
+
+async function teardownRealtimeAppointments(){
+  if(!appointmentsSubscription || !supabaseEnabled) return;
+  await supabaseClient.removeChannel(appointmentsSubscription);
+  appointmentsSubscription = null;
+}
+
+function startAgendaAutoRefresh(){
+  stopAgendaAutoRefresh();
+  agendaRefreshTimer = setInterval(async () => {
+    const panelOpen = document.getElementById('agendaPanel')?.classList.contains('open');
+    if(panelOpen && agendaAuthenticated){
+      await refreshAppointments();
+    }
+  }, 10000);
+}
+
+function stopAgendaAutoRefresh(){
+  if(agendaRefreshTimer){
+    clearInterval(agendaRefreshTimer);
+    agendaRefreshTimer = null;
+  }
+}
+
 // ── INIT ─────────────────────────────────────────────────
 document.getElementById('clientPhone').addEventListener('input', function(){
   let v = this.value.replace(/\D/g, '');
@@ -1223,10 +1417,13 @@ document.getElementById('clientPhone').addEventListener('input', function(){
 });
 
 async function initApp(){
+  await loadProfessionalAvailability();
   buildProfessionalGrid();
   buildServiceGrid();
   buildDateGrid();
   await bootstrapSupabaseAuth();
+  setupRealtimeAppointments();
+  startAgendaAutoRefresh();
   renderApptList();
 }
 initApp();
@@ -1302,6 +1499,7 @@ function selectService(id){
   if(card) card.classList.add('selected');
   state.serviceId = id;
   document.getElementById('btnStep3').disabled = false;
+  setTimeout(() => goStep(3), 120);
 }
 
 function buildDateGrid(){
@@ -1523,21 +1721,21 @@ async function confirmBooking(){
   try {
     const savedAppt = await saveAppointment(appt);
 
-    const clientMsg = encodeURIComponent(
-      `Olá! 🌿 Agendamento confirmado na *${CONFIG.salonName}*!\n\n` +
-      `👩‍⚕️ Profissional: *${pro.name}*\n` +
-      `✦ Serviço: *${svc.emoji} ${svc.name}*\n` +
-      `📅 Data: *${fmtDate(savedAppt.date)} · ${formatTimeRange(savedAppt.time, savedAppt.duration)}*\n` +
-      `⏱ Duração: *${savedAppt.duration} min*\n` +
-      `💰 Valor: *${fmtPrice(savedAppt.price)}*\n` +
-      `💳 Pagamento: *${savedAppt.payment}*\n` +
-      (savedAppt.obs ? `📝 Obs: ${savedAppt.obs}\n` : '') +
-      `\nNos vemos em breve! 💚`
+    const proMsg = encodeURIComponent(
+      `🌿 *Detalhes do agendamento — ${CONFIG.salonName}*\n\n` +
+      `👩‍⚕️ *Profissional:* ${pro.name}\n` +
+      `👤 *Cliente:* ${savedAppt.name}\n` +
+      `📱 *Tel:* ${savedAppt.phone}\n` +
+      `✦ *Serviço:* ${svc.emoji} ${svc.name}\n` +
+      `📅 *Data:* ${fmtDate(savedAppt.date)} · ${formatTimeRange(savedAppt.time, savedAppt.duration)}\n` +
+      `⏱ *Duração:* ${savedAppt.duration} min\n` +
+      `💰 *Valor:* ${fmtPrice(savedAppt.price)}\n` +
+      `💳 *Pagamento:* ${savedAppt.payment}\n` +
+      (savedAppt.obs ? `📝 *Obs:* ${savedAppt.obs}\n` : '') +
+      `\n_Agendado via site_`
     );
 
-    const rawPhone = state.phone.replace(/\D/g, '');
-    const wppPhone = `55${rawPhone}`;
-    document.getElementById('wppClientBtn').href = `https://wa.me/${wppPhone}?text=${clientMsg}`;
+    document.getElementById('wppClientBtn').href = `https://wa.me/${savedAppt.professionalPhone}?text=${proMsg}`;
 
     document.getElementById('card4').classList.remove('active');
     document.getElementById('successScreen').classList.add('active');
@@ -1545,7 +1743,7 @@ async function confirmBooking(){
       `${svc.emoji} ${svc.name} com ${pro.name} agendado para ${fmtDate(savedAppt.date)} · ${formatTimeRange(savedAppt.time, savedAppt.duration)}.`;
 
     notifyProAuto(savedAppt);
-    renderApptList();
+    await refreshAppointments();
   } catch (error) {
     console.error(error);
     const duplicate = String(error?.message || '').toLowerCase().includes('duplicate') || error?.code === '23505';
@@ -1613,16 +1811,20 @@ function togglePanel(){
   if(open) renderAgendaAccess();
 }
 
-function renderAgendaAccess(){
+async function renderAgendaAccess(){
   const list = document.getElementById('apptList');
   const filterBar = document.getElementById('filterBar');
   const actions = document.getElementById('agendaActions');
   const logoutBtn = document.getElementById('logoutBtn');
+  const availabilityAdmin = document.getElementById('availabilityAdmin');
 
   if(!agendaAuthenticated){
     filterBar.style.display = 'none';
     actions.style.display = 'none';
     logoutBtn.style.display = 'none';
+    availabilityAdmin.style.display = 'none';
+    availabilityAdmin.innerHTML = '';
+    stopAgendaAutoRefresh();
     list.innerHTML = `
       <div class="summary-block" style="margin:8px 0 0">
         <div class="section-title" style="font-size:28px;margin-bottom:6px">Acesso <span>restrito</span></div>
@@ -1632,7 +1834,7 @@ function renderAgendaAccess(){
         <div class="form-grid full">
           <div class="field">
             <label>E-mail da agenda</label>
-            <input type="email" id="agendaEmail" placeholder="ex.: anna@bemquerer.local" />
+            <input type="email" id="agendaEmail" placeholder="ex.: anna@bemquerer.com" />
           </div>
           <div class="field">
             <label>Senha</label>
@@ -1653,10 +1855,110 @@ function renderAgendaAccess(){
     return;
   }
 
+  startAgendaAutoRefresh();
   filterBar.style.display = 'flex';
   actions.style.display = 'block';
   logoutBtn.style.display = 'inline-flex';
-  refreshAppointments();
+  availabilityAdmin.style.display = 'block';
+  renderAvailabilityAdmin();
+  await refreshAppointments();
+}
+
+
+function renderAvailabilityAdmin(){
+  const wrap = document.getElementById('availabilityAdmin');
+  if(!wrap || !agendaAuthenticated) return;
+
+  wrap.innerHTML = PROFESSIONALS.map(pro => {
+    const cfg = professionalAvailability[pro.id] || getDefaultAvailabilityMap()[pro.id];
+    const daysHtml = DAY_OPTIONS.map(day => `
+      <button type="button" class="day-toggle ${cfg.workDays.includes(day.value) ? 'active' : ''}" data-pro="${pro.id}" data-day="${day.value}" onclick="toggleAvailabilityDay(${pro.id}, ${day.value}, this)">
+        ${day.label}
+      </button>
+    `).join('');
+
+    return `
+      <div class="admin-card">
+        <h4>${pro.emoji} ${escapeHtml(pro.name)}</h4>
+        <p>Altere os dias e horários de atendimento. A duração do bloco continua em ${pro.bookingDurationMinutes} minutos.</p>
+        <div class="day-toggle-grid">${daysHtml}</div>
+        <div class="mini-grid">
+          <div class="field">
+            <label>Início</label>
+            <input type="number" min="0" max="23" step="1" id="start_${pro.id}" value="${cfg.startHour}">
+          </div>
+          <div class="field">
+            <label>Fim</label>
+            <input type="number" min="1" max="24" step="1" id="end_${pro.id}" value="${cfg.endHour}">
+          </div>
+        </div>
+        <button class="btn-secondary" style="margin-top:14px" onclick="saveAvailabilityFromPanel(${pro.id})">Salvar horários de ${escapeHtml(pro.name)}</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleAvailabilityDay(proId, day, el){
+  const cfg = professionalAvailability[proId] || getDefaultAvailabilityMap()[proId];
+  const hasDay = cfg.workDays.includes(day);
+  cfg.workDays = hasDay ? cfg.workDays.filter(v => v !== day) : [...cfg.workDays, day].sort((a,b) => a-b);
+  professionalAvailability[proId] = cfg;
+  el.classList.toggle('active', !hasDay);
+}
+
+async function saveAvailabilityFromPanel(proId){
+  const startHour = Number(document.getElementById(`start_${proId}`)?.value);
+  const endHour = Number(document.getElementById(`end_${proId}`)?.value);
+  const cfg = professionalAvailability[proId] || getDefaultAvailabilityMap()[proId];
+  const workDays = [...cfg.workDays].sort((a,b) => a-b);
+  const pro = getProfessionalById(proId);
+
+  if(!workDays.length){
+    alert('Selecione pelo menos um dia de atendimento.');
+    return;
+  }
+
+  if(Number.isNaN(startHour) || Number.isNaN(endHour) || startHour < 0 || endHour > 24 || startHour >= endHour){
+    alert('Informe um horário inicial e final válidos.');
+    return;
+  }
+
+  if((endHour - startHour) < ((pro?.bookingDurationMinutes || CONFIG.bookingDurationMinutes) / 60)){
+    alert('O intervalo precisa comportar pelo menos 1 bloco de atendimento.');
+    return;
+  }
+
+  try {
+    await saveProfessionalAvailability(proId, {
+      workDays,
+      startHour,
+      endHour,
+      bookingDurationMinutes: pro?.bookingDurationMinutes || CONFIG.bookingDurationMinutes
+    });
+
+    if(state.professionalId === proId){
+      buildServiceGrid();
+      buildDateGrid();
+      if(state.date){
+        const currentDate = new Date(`${state.date}T12:00:00`);
+        if(!getProfessional().workDays.includes(currentDate.getDay())){
+          state.date = null;
+          state.time = null;
+          document.getElementById('timeGrid').innerHTML = '';
+          document.getElementById('timeLabel').textContent = 'Selecione uma data para ver os horários';
+          document.getElementById('btnStep4').disabled = true;
+        } else {
+          buildTimeSlots(state.date);
+        }
+      }
+    }
+
+    renderAvailabilityAdmin();
+    alert(`Horários de ${pro?.name || 'profissional'} atualizados com sucesso.`);
+  } catch (error) {
+    console.error(error);
+    alert('Não foi possível salvar os horários. Rode o SQL atualizado no Supabase e tente novamente.');
+  }
 }
 
 async function loginAgenda(){
@@ -1692,17 +1994,22 @@ async function loginAgenda(){
 
   agendaUser = signedUser;
   agendaAuthenticated = true;
-  renderAgendaAccess();
+  await loadAppointments(true);
+  await renderAgendaAccess();
 }
 
 async function logoutAgenda(){
+  stopAgendaAutoRefresh();
   agendaAuthenticated = false;
   agendaUser = null;
   if(supabaseEnabled){
     await supabaseClient.auth.signOut();
   }
   await loadAppointments(false);
-  renderAgendaAccess();
+  document.getElementById('filterBar').style.display = 'none';
+  document.getElementById('agendaActions').style.display = 'none';
+  document.getElementById('logoutBtn').style.display = 'none';
+  await renderAgendaAccess();
 }
 
 function filterAppts(el, mode){
