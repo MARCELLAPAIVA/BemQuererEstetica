@@ -1072,6 +1072,8 @@ let professionalAvailability = {};
 let filterMode = 'all';
 let agendaAuthenticated = false;
 let agendaUser = null;
+let appointmentsSubscription = null;
+let agendaRefreshTimer = null;
 
 // ── HELPERS ──────────────────────────────────────────────
 function fmt(n){ return n.toString().padStart(2,'0'); }
