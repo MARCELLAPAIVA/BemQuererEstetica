@@ -1809,86 +1809,139 @@ function notifyPro(){
 }
 
 // ── AGENDA PANEL ──────────────────────────────────────────
-async function togglePanel(){
-  const panel = document.getElementById('agendaPanel');
-  const overlay = document.getElementById('overlay');
-  const open = panel.classList.toggle('open');
-  overlay.classList.toggle('show', open);
-  if(open){
-    await renderAgendaAccess(true);
-  }
+function showAgendaMessage(html){
+  const list = document.getElementById('apptList');
+  if(list) list.innerHTML = html;
 }
 
-async function renderAgendaAccess(forceSessionCheck = false){
-  const list = document.getElementById('apptList');
+function showAgendaLogin(){
   const filterBar = document.getElementById('filterBar');
   const actions = document.getElementById('agendaActions');
   const logoutBtn = document.getElementById('logoutBtn');
   const availabilityAdmin = document.getElementById('availabilityAdmin');
 
-  if(forceSessionCheck && supabaseEnabled){
-    try {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      agendaUser = session?.user || null;
-      agendaAuthenticated = !!agendaUser && isAgendaEmailAllowed(agendaUser.email);
-    } catch (error) {
-      console.error('Falha ao validar sessão da agenda:', error);
-      agendaUser = null;
-      agendaAuthenticated = false;
-    }
-  }
-
-  if(!agendaAuthenticated){
-    filterBar.style.display = 'none';
-    actions.style.display = 'none';
-    logoutBtn.style.display = 'none';
+  if(filterBar) filterBar.style.display = 'none';
+  if(actions) actions.style.display = 'none';
+  if(logoutBtn) logoutBtn.style.display = 'none';
+  if(availabilityAdmin){
     availabilityAdmin.style.display = 'none';
     availabilityAdmin.innerHTML = '';
-    stopAgendaAutoRefresh();
-    list.innerHTML = `
-      <div class="summary-block" style="margin:8px 0 0">
-        <div class="section-title" style="font-size:28px;margin-bottom:6px">Acesso <span>restrito</span></div>
-        <div class="section-desc" style="margin-bottom:18px">
-          Somente contas autorizadas da Anna e da Shirlei podem visualizar a agenda.
-        </div>
-        <div class="form-grid full">
-          <div class="field">
-            <label>E-mail da agenda</label>
-            <input type="email" id="agendaEmail" placeholder="ex.: anna@bemquerer.com" />
-          </div>
-          <div class="field">
-            <label>Senha</label>
-            <input type="password" id="agendaPass" placeholder="Digite a senha" />
-          </div>
-        </div>
-        <button class="btn-primary" style="margin-top:18px" onclick="loginAgenda()">Entrar na agenda</button>
-      </div>
-    `;
-    setTimeout(() => {
-      const emailInput = document.getElementById('agendaEmail');
-      const passInput = document.getElementById('agendaPass');
-      if(passInput){
-        passInput.addEventListener('keydown', function(e){ if(e.key === 'Enter') loginAgenda(); }, { once:true });
-      }
-      if(emailInput){ emailInput.focus(); }
-    }, 50);
-    return;
   }
 
-  startAgendaAutoRefresh();
-  filterBar.style.display = 'flex';
-  actions.style.display = 'block';
-  logoutBtn.style.display = 'inline-flex';
-  availabilityAdmin.style.display = 'block';
-  renderAvailabilityAdmin();
-  const loaded = await refreshAppointments();
-  if(!loaded){
-    agendaAuthenticated = false;
-    agendaUser = null;
-    if(supabaseEnabled){
-      try { await supabaseClient.auth.signOut(); } catch (e) {}
+  stopAgendaAutoRefresh();
+  showAgendaMessage(`
+    <div class="summary-block" style="margin:8px 0 0">
+      <div class="section-title" style="font-size:28px;margin-bottom:6px">Acesso <span>restrito</span></div>
+      <div class="section-desc" style="margin-bottom:18px">
+        Somente contas autorizadas da Anna e da Shirlei podem visualizar a agenda.
+      </div>
+      <div class="form-grid full">
+        <div class="field">
+          <label>E-mail da agenda</label>
+          <input type="email" id="agendaEmail" placeholder="ex.: anna@bemquerer.com" />
+        </div>
+        <div class="field">
+          <label>Senha</label>
+          <input type="password" id="agendaPass" placeholder="Digite a senha" />
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top:18px" onclick="loginAgenda()">Entrar na agenda</button>
+    </div>
+  `);
+
+  setTimeout(() => {
+    const emailInput = document.getElementById('agendaEmail');
+    const passInput = document.getElementById('agendaPass');
+    if(passInput){
+      passInput.onkeydown = function(e){ if(e.key === 'Enter') loginAgenda(); };
     }
-    return renderAgendaAccess(false);
+    if(emailInput){ emailInput.focus(); }
+  }, 50);
+}
+
+function showAgendaError(message){
+  showAgendaMessage(`
+    <div class="summary-block" style="margin:8px 0 0">
+      <div class="section-title" style="font-size:28px;margin-bottom:6px">Erro na <span>agenda</span></div>
+      <div class="section-desc" style="margin-bottom:18px">${escapeHtml(message)}</div>
+      <button class="btn-secondary" onclick="renderAgendaAccess(true)">Tentar novamente</button>
+    </div>
+  `);
+}
+
+async function togglePanel(){
+  const panel = document.getElementById('agendaPanel');
+  const overlay = document.getElementById('overlay');
+  if(!panel || !overlay) return;
+
+  const open = panel.classList.toggle('open');
+  overlay.classList.toggle('show', open);
+
+  if(open){
+    showAgendaMessage('<div class="empty-msg"><div class="empty-icon">⏳</div>Carregando agenda...</div>');
+    try {
+      await renderAgendaAccess(true);
+    } catch (error) {
+      console.error('Falha ao abrir agenda:', error);
+      showAgendaError('Não foi possível abrir a agenda agora. Atualize a página e tente novamente.');
+    }
+  }
+}
+
+async function renderAgendaAccess(forceSessionCheck = false){
+  try {
+    const filterBar = document.getElementById('filterBar');
+    const actions = document.getElementById('agendaActions');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const availabilityAdmin = document.getElementById('availabilityAdmin');
+
+    if(forceSessionCheck && supabaseEnabled){
+      try {
+        const { data, error } = await supabaseClient.auth.getSession();
+        if(error) throw error;
+        const session = data?.session || null;
+        agendaUser = session?.user || null;
+        agendaAuthenticated = !!agendaUser && isAgendaEmailAllowed(agendaUser.email);
+        if(agendaUser && !agendaAuthenticated){
+          try { await supabaseClient.auth.signOut(); } catch (e) {}
+          agendaUser = null;
+          agendaAuthenticated = false;
+        }
+      } catch (error) {
+        console.error('Falha ao validar sessão da agenda:', error);
+        agendaUser = null;
+        agendaAuthenticated = false;
+      }
+    }
+
+    if(!agendaAuthenticated){
+      showAgendaLogin();
+      return;
+    }
+
+    startAgendaAutoRefresh();
+    if(filterBar) filterBar.style.display = 'flex';
+    if(actions) actions.style.display = 'block';
+    if(logoutBtn) logoutBtn.style.display = 'inline-flex';
+    if(availabilityAdmin) availabilityAdmin.style.display = 'block';
+
+    renderAvailabilityAdmin();
+    const loaded = await refreshAppointments();
+
+    if(!loaded){
+      agendaAuthenticated = false;
+      agendaUser = null;
+      if(supabaseEnabled){
+        try { await supabaseClient.auth.signOut(); } catch (e) {}
+      }
+      showAgendaLogin();
+      return;
+    }
+
+    renderApptList();
+  } catch (error) {
+    console.error('Erro ao renderizar agenda:', error);
+    showAgendaError('A agenda não conseguiu carregar. Verifique o SQL, o login do Supabase e tente novamente.');
   }
 }
 
@@ -1990,48 +2043,59 @@ async function saveAvailabilityFromPanel(proId){
 }
 
 async function loginAgenda(){
-  if(!supabaseEnabled){
-    alert('Configure primeiro a URL e a chave pública do Supabase no código.');
-    return;
-  }
+  try {
+    if(!supabaseEnabled){
+      alert('Configure primeiro a URL e a chave pública do Supabase no código.');
+      return;
+    }
 
-  const email = (document.getElementById('agendaEmail')?.value || '').trim().toLowerCase();
-  const pass = document.getElementById('agendaPass')?.value || '';
+    const email = (document.getElementById('agendaEmail')?.value || '').trim().toLowerCase();
+    const pass = document.getElementById('agendaPass')?.value || '';
 
-  if(!email || !pass){
-    alert('Preencha e-mail e senha.');
-    return;
-  }
+    if(!email || !pass){
+      alert('Preencha e-mail e senha.');
+      return;
+    }
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password: pass
-  });
+    showAgendaMessage('<div class="empty-msg"><div class="empty-icon">⏳</div>Entrando na agenda...</div>');
 
-  if(error){
-    alert('E-mail ou senha inválidos.');
-    return;
-  }
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password: pass
+    });
 
-  const signedUser = data?.user || null;
-  if(!signedUser || !isAgendaEmailAllowed(signedUser.email)){
-    await supabaseClient.auth.signOut();
-    alert('Essa conta não tem permissão para acessar a agenda.');
-    return;
-  }
+    if(error){
+      console.error(error);
+      showAgendaLogin();
+      alert('E-mail ou senha inválidos.');
+      return;
+    }
 
-  agendaUser = signedUser;
-  agendaAuthenticated = true;
-  const loaded = await loadAppointments(true);
-  if(!loaded){
-    agendaAuthenticated = false;
-    agendaUser = null;
-    try { await supabaseClient.auth.signOut(); } catch (e) {}
-    alert('O login foi aceito, mas a agenda não pôde ser carregada. Rode o SQL atualizado no Supabase e tente novamente.');
+    const signedUser = data?.user || null;
+    if(!signedUser || !isAgendaEmailAllowed(signedUser.email)){
+      await supabaseClient.auth.signOut();
+      showAgendaLogin();
+      alert('Essa conta não tem permissão para acessar a agenda.');
+      return;
+    }
+
+    agendaUser = signedUser;
+    agendaAuthenticated = true;
+    const loaded = await loadAppointments(true);
+    if(!loaded){
+      agendaAuthenticated = false;
+      agendaUser = null;
+      try { await supabaseClient.auth.signOut(); } catch (e) {}
+      showAgendaLogin();
+      alert('O login foi aceito, mas a agenda não pôde ser carregada. Rode o SQL atualizado no Supabase e tente novamente.');
+      return;
+    }
     await renderAgendaAccess(false);
-    return;
+  } catch (error) {
+    console.error('Erro no login da agenda:', error);
+    showAgendaLogin();
+    alert('Não foi possível entrar na agenda agora.');
   }
-  await renderAgendaAccess(false);
 }
 
 async function logoutAgenda(){
