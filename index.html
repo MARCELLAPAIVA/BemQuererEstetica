@@ -706,7 +706,7 @@ function amanhaConfirmados(){
 function renderAdminLembretes(){
   const lista = amanhaConfirmados();
   let html = `<div class="card"><div class="section-title">Lembretes para amanhã (${fmtDate(tomorrowStr())})</div>`;
-  html += `<p style="color:var(--ink-soft);font-size:13px;margin-top:-6px;">Este site não envia mensagens sozinho — não há como automatizar 100% sem conectar a uma API oficial do WhatsApp Business. Mas aqui você vê de relance quem tem atendimento amanhã e manda o lembrete com um toque.</p>`;
+  html += `<p style="color:var(--ink-soft);font-size:13px;margin-top:-6px;">Ainda não há lembretes.</p>`;
   if(lista.length===0){
     html += `<div class="empty">Nenhum atendimento confirmado para amanhã.</div>`;
   } else {
