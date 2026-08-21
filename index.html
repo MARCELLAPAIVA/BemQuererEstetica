@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -9,20 +9,20 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --wine:#6B5C82;
-    --wine-dark:#453A5C;
-    --blush:#F0D9DE;
-    --blush-light:#FBF2F4;
+    --wine:#D6607F;
+    --wine-dark:#A8465F;
+    --blush:#F6D9E1;
+    --blush-light:#FDF1F4;
     --ivory:#F8F6FA;
-    --sage:#B98A9E;
-    --sage-dark:#8C5F70;
+    --sage:#8C7BA0;
+    --sage-dark:#6B5C82;
     --gold:#B08655;
-    --ink:#221E28;
-    --ink-soft:#6B6475;
+    --ink:#241C22;
+    --ink-soft:#7A6470;
     --danger:#A6483C;
-    --line:#E5DEE8;
+    --line:#EEDCE2;
     --radius:18px;
-    --shadow:0 10px 30px rgba(34,30,40,0.08);
+    --shadow:0 10px 30px rgba(36,28,34,0.08);
   }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--ivory);color:var(--ink);font-family:'Manrope',sans-serif;}
@@ -382,7 +382,7 @@ async function tryAdminLoginSupabase(){
   if(!email || !password){ toast('Preencha e-mail e senha.'); return; }
   try{
     const { error } = await sb.auth.signInWithPassword({ email, password });
-    if(error){ toast('E-mail ou senha incorretos.'); return; }
+    if(error){ toast(error.message || 'E-mail ou senha incorretos.'); return; }
     adminAuthed = true; view='admin'; render();
   }catch(e){ toast('Não deu para entrar. Tenta de novo.'); }
 }
@@ -545,7 +545,6 @@ function meuPedidoResultsHTML(){
 function renderMeuPedidoResults(){
   const el = document.getElementById('meuPedidoResults');
   if(el) el.innerHTML = meuPedidoResultsHTML();
-}
 }
 
 // ---------- ADMIN ----------
