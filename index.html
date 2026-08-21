@@ -895,7 +895,7 @@ function renderAdminConfig(){
     html += `
     <div class="card">
       <div class="section-title">Acesso ao painel</div>
-      <p style="color:var(--ink-soft);font-size:13px;margin-top:-6px;">O login agora é por e-mail e senha, gerenciados no painel do Supabase (Authentication → Users). Para trocar a senha ou dar acesso a outra pessoa, faça isso por lá.</p>
+      <p style="color:var(--ink-soft);font-size:13px;margin-top:-6px;">O login agora é por e-mail e senha. Para trocar a senha ou dar acesso a outra pessoa, contate o administrador.</p>
     </div>`;
   } else {
     html += `
@@ -907,7 +907,7 @@ function renderAdminConfig(){
   }
   html += `
     <div class="warn-box">
-      ${sb ? 'Este site está conectado ao Supabase: as marcações, a agenda, os serviços e o login ficam salvos de verdade no seu banco de dados.' : 'Este é um protótipo funcional: as marcações e a agenda ficam salvas aqui na prévia do Claude — para dados de verdade, conecte o Supabase.'} O envio das mensagens de WhatsApp é feito com um toque (abre o WhatsApp já com o texto pronto) — não existe envio 100% automático sem conectar a uma API oficial do WhatsApp Business.
+      ${sb ? 'Site gerado e gerenciado por MB MKT.
     </div>
   `;
   return html;
