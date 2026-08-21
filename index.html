@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bem Querer Estética — Agendamento</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23D6607F' stroke-width='1.4'%3E%3Cellipse cx='12' cy='5' rx='3' ry='4.8' transform='rotate(0 12 12)'/%3E%3Cellipse cx='12' cy='5' rx='3' ry='4.8' transform='rotate(72 12 12)'/%3E%3Cellipse cx='12' cy='5' rx='3' ry='4.8' transform='rotate(144 12 12)'/%3E%3Cellipse cx='12' cy='5' rx='3' ry='4.8' transform='rotate(216 12 12)'/%3E%3Cellipse cx='12' cy='5' rx='3' ry='4.8' transform='rotate(288 12 12)'/%3E%3C/g%3E%3Ccircle cx='12' cy='12' r='2' fill='%23B08655'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -80,6 +81,11 @@
   .status-pendente{background:#FBF0DC;color:#8A6A1F;}
   .status-confirmado{background:#F1E1E6;color:var(--sage-dark);}
   .status-recusado{background:#F3E3E0;color:var(--danger);}
+  .status-cancelado{background:#F3E3E0;color:var(--danger);}
+  .tab-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--danger);margin-left:5px;position:relative;top:-1px;}
+  .cal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .btn-cal{background:none;color:var(--sage-dark);border:1.5px solid var(--sage);padding:8px 12px;font-size:12.5px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+  .btn-cal:hover{background:var(--blush-light);}
   .req-item{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
   .req-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
   .req-name{font-family:'Fraunces',serif;font-weight:600;font-size:16px;}
@@ -161,6 +167,7 @@ function petalSVG(state, size=18){
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 function pad(n){ return n.toString().padStart(2,'0'); }
 function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function tomorrowStr(){ const d=new Date(); d.setDate(d.getDate()+1); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
 function toMin(hhmm){ const [h,m]=hhmm.split(':').map(Number); return h*60+m; }
 function toHHMM(min){ return `${pad(Math.floor(min/60))}:${pad(min%60)}`; }
 function fmtDate(dstr){ const d = new Date(dstr+'T00:00:00'); return `${DOW_NAMES[d.getDay()]}, ${d.getDate()} de ${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]}`; }
@@ -308,6 +315,62 @@ function availableSlots(dateStr, duration){
 function waLink(phone, text){
   const digits = onlyDigits(phone);
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+// ---------- CALENDÁRIO (Google Calendar / Apple / Outlook via .ics) ----------
+function apptDateRange(a){
+  const [y,mo,d] = a.date.split('-').map(Number);
+  const [h,mi] = a.time.split(':').map(Number);
+  const start = new Date(y, mo-1, d, h, mi);
+  const end = new Date(start.getTime() + a.duration*60000);
+  const fmt = dt => `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T${pad(dt.getHours())}${pad(dt.getMinutes())}00`;
+  return { startStr: fmt(start), endStr: fmt(end) };
+}
+function googleCalLink(a){
+  const { startStr, endStr } = apptDateRange(a);
+  const text = encodeURIComponent(`${a.serviceName} — Bem Querer Estética`);
+  const details = encodeURIComponent(`Atendimento: ${a.serviceName}\nCliente: ${a.clientName}\nBem Querer Estética — Shirlei Andrade`);
+  const location = encodeURIComponent('Bem Querer Estética');
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${startStr}/${endStr}&details=${details}&location=${location}`;
+}
+function icsEscape(s){ return String(s).replace(/([,;])/g,'\\$1'); }
+function icsContent(a){
+  const { startStr, endStr } = apptDateRange(a);
+  const now = new Date();
+  const dtstamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth()+1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
+  return [
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Bem Querer Estetica//Agendamento//PT','CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${a.id}@bemquererestetica`,
+    `DTSTAMP:${dtstamp}`,
+    `DTSTART:${startStr}`,
+    `DTEND:${endStr}`,
+    `SUMMARY:${icsEscape(a.serviceName)} — Bem Querer Estética`,
+    `DESCRIPTION:${icsEscape('Atendimento de '+a.clientName+' — '+a.serviceName)}`,
+    'LOCATION:Bem Querer Estética',
+    'END:VEVENT','END:VCALENDAR'
+  ].join('\r\n');
+}
+function downloadICS(id){
+  const a = DATA.appointments.find(x=>x.id===id);
+  if(!a) return;
+  const blob = new Blob([icsContent(a)], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `atendimento-${a.date}-${a.time.replace(':','')}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+function calActionsHTML(a){
+  return `
+    <div class="cal-actions">
+      <a class="btn btn-cal" href="${googleCalLink(a)}" target="_blank">📅 Google Calendar</a>
+      <button class="btn btn-cal" onclick="downloadICS('${a.id}')">📅 Apple / Outlook (.ics)</button>
+    </div>
+  `;
 }
 
 // ---------- RENDER ----------
@@ -539,6 +602,7 @@ function meuPedidoResultsHTML(){
         </div>
         <span class="status-badge status-${a.status}">${petalSVG(a.status,14)} ${a.status.charAt(0).toUpperCase()+a.status.slice(1)}</span>
       </div>
+      ${a.status==='confirmado' ? calActionsHTML(a) : ''}
     </div>
   `).join('');
 }
@@ -553,6 +617,7 @@ function renderAdmin(){
     <div class="admin-tabs">
       <div class="admin-tab ${adminTab==='pedidos'?'active':''}" onclick="adminGoto('pedidos')">Marcações</div>
       <div class="admin-tab ${adminTab==='agenda'?'active':''}" onclick="adminGoto('agenda')">Agenda</div>
+      <div class="admin-tab ${adminTab==='lembretes'?'active':''}" onclick="adminGoto('lembretes')">Lembretes${amanhaConfirmados().length>0?'<span class="tab-dot"></span>':''}</div>
       <div class="admin-tab ${adminTab==='horarios'?'active':''}" onclick="adminGoto('horarios')">Horários</div>
       <div class="admin-tab ${adminTab==='servicos'?'active':''}" onclick="adminGoto('servicos')">Serviços</div>
       <div class="admin-tab ${adminTab==='config'?'active':''}" onclick="adminGoto('config')">Configurações</div>
@@ -561,6 +626,7 @@ function renderAdmin(){
   `;
   if(adminTab==='pedidos') html += renderAdminPedidos();
   if(adminTab==='agenda') html += renderAdminAgenda();
+  if(adminTab==='lembretes') html += renderAdminLembretes();
   if(adminTab==='horarios') html += renderAdminHorarios();
   if(adminTab==='servicos') html += renderAdminServicos();
   if(adminTab==='config') html += renderAdminConfig();
@@ -618,6 +684,55 @@ async function declineAppt(id){
   }
 }
 
+async function cancelApptByAdmin(id){
+  const a = DATA.appointments.find(x=>x.id===id);
+  if(!a) return;
+  if(!confirm(`Cancelar o agendamento de ${a.clientName} em ${fmtDate(a.date)} às ${a.time}? A cliente será avisada no WhatsApp.`)) return;
+  await updateAppointmentStatus(id, 'cancelado');
+  render();
+  toast('Agendamento cancelado.');
+  const msg = `Oi ${a.clientName}! Aqui é a Shirlei, da Bem Querer Estética. Preciso cancelar o seu agendamento de ${fmtDate(a.date)} às ${a.time}. Desculpa o transtorno — vamos remarcar? 💛`;
+  if(a.clientPhone){
+    window.open(waLink(a.clientPhone, msg), '_blank');
+  }
+}
+
+function amanhaConfirmados(){
+  if(!DATA.appointments) return [];
+  const d = tomorrowStr();
+  return DATA.appointments.filter(a=>a.status==='confirmado' && a.date===d).sort((a,b)=>a.time.localeCompare(b.time));
+}
+
+function renderAdminLembretes(){
+  const lista = amanhaConfirmados();
+  let html = `<div class="card"><div class="section-title">Lembretes para amanhã (${fmtDate(tomorrowStr())})</div>`;
+  html += `<p style="color:var(--ink-soft);font-size:13px;margin-top:-6px;">Este site não envia mensagens sozinho — não há como automatizar 100% sem conectar a uma API oficial do WhatsApp Business. Mas aqui você vê de relance quem tem atendimento amanhã e manda o lembrete com um toque.</p>`;
+  if(lista.length===0){
+    html += `<div class="empty">Nenhum atendimento confirmado para amanhã.</div>`;
+  } else {
+    lista.forEach(a=>{
+      const msg = `Oi ${a.clientName}! Passando para lembrar do seu atendimento amanhã, ${fmtDate(a.date)}, às ${a.time}:\n${a.serviceName}\n\nTe espero na Bem Querer Estética 💛`;
+      html += `
+        <div class="req-item">
+          <div class="req-top">
+            <div>
+              <div class="req-name">${a.time} — ${a.clientName}</div>
+              <div class="req-meta">${a.serviceName} · ${a.duration}min</div>
+              <div class="req-meta">WhatsApp: ${a.clientPhone}</div>
+            </div>
+            <span class="status-badge status-confirmado">${petalSVG('confirmado',14)} Confirmado</span>
+          </div>
+          <div class="req-actions">
+            ${a.clientPhone ? `<a class="btn btn-sage" style="text-decoration:none;" href="${waLink(a.clientPhone, msg)}" target="_blank">Enviar lembrete no WhatsApp</a>` : `<span class="empty" style="padding:0;">Sem WhatsApp cadastrado</span>`}
+          </div>
+        </div>
+      `;
+    });
+  }
+  html += `</div>`;
+  return html;
+}
+
 function renderAdminAgenda(){
   const upcoming = DATA.appointments.filter(a=>a.status==='confirmado' && a.date>=todayStr()).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
   const byDate = {};
@@ -636,9 +751,14 @@ function renderAdminAgenda(){
               <div>
                 <div class="req-name">${a.time} — ${a.clientName}</div>
                 <div class="req-meta">${a.serviceName} · ${a.duration}min</div>
+                <div class="req-meta">WhatsApp: ${a.clientPhone}</div>
               </div>
               <span class="status-badge status-confirmado">${petalSVG('confirmado',14)} Confirmado</span>
             </div>
+            <div class="req-actions">
+              <button class="btn btn-danger" onclick="cancelApptByAdmin('${a.id}')">Cancelar agendamento</button>
+            </div>
+            ${calActionsHTML(a)}
           </div>
         `;
       });
