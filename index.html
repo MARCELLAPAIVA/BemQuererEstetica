@@ -109,7 +109,9 @@
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:var(--shadow);z-index:50;}
   .muted-link{background:none;border:none;color:var(--ink-soft);font-size:12px;cursor:pointer;text-decoration:underline;padding:0;font-family:'Manrope',sans-serif;}
   .svc-admin-row{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding:10px 0;flex-wrap:wrap;}
-  .cat-group-title{font-weight:800;color:var(--wine-dark);font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;}
+  .cat-toggle{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer;font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--wine-dark);background:var(--blush-light);margin-bottom:10px;}
+  .cat-toggle.open{border-color:var(--wine);background:var(--blush);}
+  .cat-toggle .cat-meta{font-family:'Manrope',sans-serif;font-weight:600;font-size:12.5px;color:var(--ink-soft);}
   .filter-tabs{display:flex;gap:8px;flex-wrap:wrap;}
   .filter-tabs .btn{padding:8px 14px;font-size:12.5px;}
   .warn-box{background:#FBF0DC;border:1px solid #E8CE9A;color:#8A6A1F;border-radius:12px;padding:12px 14px;font-size:13px;margin-bottom:18px;}
@@ -153,6 +155,7 @@ let loaded = false;
 let view = 'agendar'; // agendar | meupedido | adminlogin | admin
 let adminTab = 'pedidos'; // pedidos | agenda | horarios | servicos
 let booking = { serviceId:null, date:null, time:null, name:'', phone:'' };
+let openCategory = null;
 let lastRequestId = null;
 let meuPedidoPhone = '';
 let adminPinInput = '';
@@ -511,20 +514,28 @@ function renderAgendar(){
   `;
 
   html += `<div class="card"><div class="section-title">1. Escolha o serviço</div>`;
-  let firstGroup = true;
   getAllCategories().forEach(cat=>{
     const svcs = DATA.services.filter(s=>s.category===cat);
     if(svcs.length===0) return;
-    html += `<div class="cat-group-title" style="margin-top:${firstGroup?'0':'16px'};">${cat}</div><div class="svc-grid">`;
-    firstGroup = false;
-    svcs.forEach(s=>{
-      html += `
-        <div class="svc-card ${booking.serviceId===s.id?'selected':''}" onclick="selectService('${s.id}')">
-          <div class="svc-name">${s.name}</div>
-          <div class="svc-meta"><span>${s.duration} min</span><span>R$ ${s.price.toFixed(2).replace('.',',')}</span></div>
-        </div>`;
-    });
-    html += `</div>`;
+    const isOpen = openCategory===cat;
+    const selectedSvc = svcs.find(x=>x.id===booking.serviceId);
+    html += `
+      <div class="cat-toggle ${isOpen?'open':''}" onclick="toggleCategory('${cat.replace(/'/g,"\\'")}')">
+        <span>${cat}</span>
+        <span class="cat-meta">${selectedSvc ? selectedSvc.name : svcs.length+' serviço'+(svcs.length>1?'s':'')} ${isOpen?'▲':'▼'}</span>
+      </div>
+    `;
+    if(isOpen){
+      html += `<div class="svc-grid" style="margin:0 0 16px;">`;
+      svcs.forEach(s=>{
+        html += `
+          <div class="svc-card ${booking.serviceId===s.id?'selected':''}" onclick="selectService('${s.id}')">
+            <div class="svc-name">${s.name}</div>
+            <div class="svc-meta"><span>${s.duration} min</span><span>R$ ${s.price.toFixed(2).replace('.',',')}</span></div>
+          </div>`;
+      });
+      html += `</div>`;
+    }
   });
   html += `</div>`;
 
@@ -577,10 +588,11 @@ function renderAgendar(){
 
   return html;
 }
+function toggleCategory(cat){ openCategory = (openCategory===cat) ? null : cat; render(); }
 function selectService(id){ booking.serviceId=id; booking.date=null; booking.time=null; render(); }
 function selectDate(d){ booking.date=d; booking.time=null; render(); }
 function selectTime(t){ booking.time=t; render(); }
-function resetBooking(){ booking={serviceId:null,date:null,time:null,name:'',phone:''}; render(); }
+function resetBooking(){ booking={serviceId:null,date:null,time:null,name:'',phone:''}; openCategory=null; render(); }
 function syncSubmitBtn(){
   const btn = document.getElementById('marcarBtn');
   if(!btn) return;
