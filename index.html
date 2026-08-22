@@ -82,6 +82,7 @@
   .status-confirmado{background:#F1E1E6;color:var(--sage-dark);}
   .status-recusado{background:#F3E3E0;color:var(--danger);}
   .status-cancelado{background:#F3E3E0;color:var(--danger);}
+  .status-realizado{background:#E3EEE5;color:#3F7A52;}
   .tab-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--danger);margin-left:5px;position:relative;top:-1px;}
   .cal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
   .btn-cal{background:none;color:var(--sage-dark);border:1.5px solid var(--sage);padding:8px 12px;font-size:12.5px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
@@ -107,7 +108,10 @@
   .chip button{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:14px;line-height:1;}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:var(--shadow);z-index:50;}
   .muted-link{background:none;border:none;color:var(--ink-soft);font-size:12px;cursor:pointer;text-decoration:underline;padding:0;font-family:'Manrope',sans-serif;}
-  .svc-admin-row{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding:10px 0;}
+  .svc-admin-row{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding:10px 0;flex-wrap:wrap;}
+  .cat-group-title{font-weight:800;color:var(--wine-dark);font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;}
+  .filter-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .filter-tabs .btn{padding:8px 14px;font-size:12.5px;}
   .warn-box{background:#FBF0DC;border:1px solid #E8CE9A;color:#8A6A1F;border-radius:12px;padding:12px 14px;font-size:13px;margin-bottom:18px;}
   @media(max-width:520px){.hero{border-radius:80px 80px 20px 20px;padding:38px 20px 30px;}.hero h1{font-size:24px;}}
 </style>
@@ -153,15 +157,18 @@ let lastRequestId = null;
 let meuPedidoPhone = '';
 let adminPinInput = '';
 let adminAuthed = false;
+let pedidosFilter = 'pendente'; // pendente | confirmado | realizado | cancelado | todas
 
 function petalSVG(state, size=18){
-  const color = state==='confirmado' ? 'var(--sage-dark)' : state==='recusado' ? '#C9BDB8' : 'var(--gold)';
-  const fill = state==='confirmado' ? color : 'none';
+  const filled = state==='confirmado' || state==='realizado';
+  const muted = state==='recusado' || state==='cancelado';
+  const color = filled ? 'var(--sage-dark)' : muted ? '#C9BDB8' : 'var(--gold)';
+  const fill = filled ? color : 'none';
   let petals='';
   for(let i=0;i<5;i++){
     petals += `<ellipse cx="12" cy="5" rx="3" ry="4.8" fill="${fill}" stroke="${color}" stroke-width="1.3" transform="rotate(${i*72} 12 12)"/>`;
   }
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">${petals}<circle cx="12" cy="12" r="2" fill="${state==='recusado'?'#C9BDB8':'var(--gold)'}"/></svg>`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">${petals}<circle cx="12" cy="12" r="2" fill="${muted?'#C9BDB8':'var(--gold)'}"/></svg>`;
 }
 
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
@@ -181,19 +188,26 @@ function toast(msg){
   setTimeout(()=>{ el.remove(); }, 3200);
 }
 
+const DEFAULT_CATEGORIES = ['Pele','Cabelo','Corpo','Outros'];
 function defaultServices(){
   return [
-    {id:uid(),name:'Limpeza de Pele Profunda',duration:60,price:120},
-    {id:uid(),name:'Design de Sobrancelhas',duration:30,price:40},
-    {id:uid(),name:'Massagem Modeladora',duration:50,price:100},
-    {id:uid(),name:'Drenagem Linfática',duration:60,price:110},
-    {id:uid(),name:'Peeling Facial',duration:45,price:150},
+    {id:uid(),name:'Limpeza de Pele Profunda',duration:60,price:120,category:'Pele'},
+    {id:uid(),name:'Design de Sobrancelhas',duration:30,price:40,category:'Pele'},
+    {id:uid(),name:'Massagem Modeladora',duration:50,price:100,category:'Corpo'},
+    {id:uid(),name:'Drenagem Linfática',duration:60,price:110,category:'Corpo'},
+    {id:uid(),name:'Peeling Facial',duration:45,price:150,category:'Pele'},
   ];
 }
 function defaultSettings(){
   const wh = {};
   for(let i=0;i<7;i++){ wh[i] = (i>=1 && i<=5) ? {active:true,start:'09:00',end:'18:00'} : (i===6 ? {active:true,start:'09:00',end:'13:00'} : {active:false,start:'09:00',end:'18:00'}); }
-  return { workingHours:wh, slotInterval:30, blockedDates:[], whatsappNumber:'5521987721345', pin:'1234' };
+  return { workingHours:wh, slotInterval:30, blockedDates:[], whatsappNumber:'5521987721345', pin:'1234', serviceCategories: DEFAULT_CATEGORIES.slice() };
+}
+function getAllCategories(){
+  const base = (DATA.settings.serviceCategories && DATA.settings.serviceCategories.length) ? DATA.settings.serviceCategories.slice() : DEFAULT_CATEGORIES.slice();
+  DATA.services.forEach(s=>{ if(s.category && !base.includes(s.category)) base.push(s.category); });
+  if(!base.includes('Outros')) base.push('Outros');
+  return base;
 }
 
 async function loadAll(){
@@ -205,10 +219,11 @@ async function loadAll(){
         sb.from('appointments').select('*').order('date').order('time'),
         sb.auth.getSession()
       ]);
-      DATA.services = (svc.data||[]).map(r=>({id:r.id,name:r.name,duration:r.duration,price:Number(r.price)}));
+      DATA.services = (svc.data||[]).map(r=>({id:r.id,name:r.name,duration:r.duration,price:Number(r.price),category:r.category||'Outros'}));
       DATA.settings = st.data ? {
         workingHours: st.data.working_hours, slotInterval: st.data.slot_interval,
-        blockedDates: st.data.blocked_dates||[], whatsappNumber: st.data.whatsapp_number||'', pin:'1234'
+        blockedDates: st.data.blocked_dates||[], whatsappNumber: st.data.whatsapp_number||'', pin:'1234',
+        serviceCategories: (st.data.service_categories && st.data.service_categories.length) ? st.data.service_categories : DEFAULT_CATEGORIES.slice()
       } : defaultSettings();
       DATA.appointments = (ap.data||[]).map(rowToAppt);
       adminAuthed = !!(sess.data && sess.data.session);
@@ -222,10 +237,12 @@ async function loadAll(){
   try{
     const s = await window.storage.get('services', STORAGE_SHARED);
     DATA.services = s ? JSON.parse(s.value) : defaultServices();
+    DATA.services.forEach(sv=>{ if(!sv.category) sv.category='Outros'; });
   }catch(e){ DATA.services = defaultServices(); }
   try{
     const st = await window.storage.get('settings', STORAGE_SHARED);
     DATA.settings = st ? JSON.parse(st.value) : defaultSettings();
+    if(!DATA.settings.serviceCategories || !DATA.settings.serviceCategories.length) DATA.settings.serviceCategories = DEFAULT_CATEGORIES.slice();
   }catch(e){ DATA.settings = defaultSettings(); }
   try{
     const ap = await window.storage.get('appointments', STORAGE_SHARED);
@@ -241,7 +258,8 @@ async function saveSettings(){
         working_hours: DATA.settings.workingHours,
         slot_interval: DATA.settings.slotInterval,
         blocked_dates: DATA.settings.blockedDates,
-        whatsapp_number: DATA.settings.whatsappNumber
+        whatsapp_number: DATA.settings.whatsappNumber,
+        service_categories: DATA.settings.serviceCategories
       }).eq('id',1);
     }catch(e){ toast('Não deu para salvar no Supabase.'); }
     return;
@@ -492,15 +510,23 @@ function renderAgendar(){
     </div>
   `;
 
-  html += `<div class="card"><div class="section-title">1. Escolha o serviço</div><div class="svc-grid">`;
-  DATA.services.forEach(s=>{
-    html += `
-      <div class="svc-card ${booking.serviceId===s.id?'selected':''}" onclick="selectService('${s.id}')">
-        <div class="svc-name">${s.name}</div>
-        <div class="svc-meta"><span>${s.duration} min</span><span>R$ ${s.price.toFixed(2).replace('.',',')}</span></div>
-      </div>`;
+  html += `<div class="card"><div class="section-title">1. Escolha o serviço</div>`;
+  let firstGroup = true;
+  getAllCategories().forEach(cat=>{
+    const svcs = DATA.services.filter(s=>s.category===cat);
+    if(svcs.length===0) return;
+    html += `<div class="cat-group-title" style="margin-top:${firstGroup?'0':'16px'};">${cat}</div><div class="svc-grid">`;
+    firstGroup = false;
+    svcs.forEach(s=>{
+      html += `
+        <div class="svc-card ${booking.serviceId===s.id?'selected':''}" onclick="selectService('${s.id}')">
+          <div class="svc-name">${s.name}</div>
+          <div class="svc-meta"><span>${s.duration} min</span><span>R$ ${s.price.toFixed(2).replace('.',',')}</span></div>
+        </div>`;
+    });
+    html += `</div>`;
   });
-  html += `</div></div>`;
+  html += `</div>`;
 
   if(svc){
     html += `<div class="card"><div class="section-title">2. Escolha o dia</div><div class="date-scroll">`;
@@ -634,13 +660,63 @@ function renderAdmin(){
 }
 function adminGoto(t){ adminTab=t; render(); }
 
+function statusLabel(s){
+  return {pendente:'Pendente',confirmado:'Confirmado',realizado:'Realizado',recusado:'Recusado',cancelado:'Cancelado'}[s] || s;
+}
+function pedidosLabel(f){
+  return f==='pendente' ? 'Marcações aguardando confirmação'
+    : f==='confirmado' ? 'Marcações confirmadas'
+    : f==='realizado' ? 'Atendimentos realizados'
+    : f==='cancelado' ? 'Canceladas e recusadas'
+    : 'Todas as marcações';
+}
+function apptActionsHTML(a){
+  if(a.status==='pendente'){
+    return `<div class="req-actions">
+      <button class="btn btn-sage" onclick="confirmAppt('${a.id}')">Confirmar</button>
+      <button class="btn btn-danger" onclick="declineAppt('${a.id}')">Recusar</button>
+    </div>`;
+  }
+  if(a.status==='confirmado'){
+    return `<div class="req-actions">
+      <button class="btn btn-sage" onclick="markRealizado('${a.id}')">Marcar como realizado</button>
+      <button class="btn btn-danger" onclick="cancelApptByAdmin('${a.id}')">Cancelar</button>
+    </div>${calActionsHTML(a)}`;
+  }
+  return '';
+}
+function setPedidosFilter(f){ pedidosFilter=f; render(); }
 function renderAdminPedidos(){
-  const pend = DATA.appointments.filter(a=>a.status==='pendente').sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
-  let html = `<div class="card"><div class="section-title">Marcações aguardando confirmação</div>`;
-  if(pend.length===0){
-    html += `<div class="empty">Nenhuma marcação nova por aqui. Assim que alguém marcar um horário, ela aparece nesta lista.</div>`;
+  const counts = {
+    pendente: DATA.appointments.filter(a=>a.status==='pendente').length,
+    confirmado: DATA.appointments.filter(a=>a.status==='confirmado').length,
+    realizado: DATA.appointments.filter(a=>a.status==='realizado').length,
+    cancelado: DATA.appointments.filter(a=>a.status==='cancelado'||a.status==='recusado').length,
+  };
+  let html = `<div class="card">
+    <div class="filter-tabs">
+      <button class="btn ${pedidosFilter==='pendente'?'btn-primary':'btn-ghost'}" onclick="setPedidosFilter('pendente')">Pendentes (${counts.pendente})</button>
+      <button class="btn ${pedidosFilter==='confirmado'?'btn-primary':'btn-ghost'}" onclick="setPedidosFilter('confirmado')">Confirmadas (${counts.confirmado})</button>
+      <button class="btn ${pedidosFilter==='realizado'?'btn-primary':'btn-ghost'}" onclick="setPedidosFilter('realizado')">Realizadas (${counts.realizado})</button>
+      <button class="btn ${pedidosFilter==='cancelado'?'btn-primary':'btn-ghost'}" onclick="setPedidosFilter('cancelado')">Canceladas/Recusadas (${counts.cancelado})</button>
+      <button class="btn ${pedidosFilter==='todas'?'btn-primary':'btn-ghost'}" onclick="setPedidosFilter('todas')">Todas</button>
+    </div>
+  </div>`;
+
+  let list;
+  if(pedidosFilter==='todas') list = DATA.appointments.slice();
+  else if(pedidosFilter==='cancelado') list = DATA.appointments.filter(a=>a.status==='cancelado'||a.status==='recusado');
+  else list = DATA.appointments.filter(a=>a.status===pedidosFilter);
+
+  list = pedidosFilter==='pendente'
+    ? list.sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time))
+    : list.sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
+
+  html += `<div class="card"><div class="section-title">${pedidosLabel(pedidosFilter)}</div>`;
+  if(list.length===0){
+    html += `<div class="empty">Nenhuma marcação aqui no momento.</div>`;
   } else {
-    pend.forEach(a=>{
+    list.forEach(a=>{
       html += `
         <div class="req-item">
           <div class="req-top">
@@ -649,18 +725,20 @@ function renderAdminPedidos(){
               <div class="req-meta">${a.serviceName} · ${fmtDate(a.date)} às ${a.time} · ${a.duration}min · R$ ${a.price.toFixed(2).replace('.',',')}</div>
               <div class="req-meta">WhatsApp: ${a.clientPhone}</div>
             </div>
-            <span class="status-badge status-pendente">${petalSVG('pendente',14)} Pendente</span>
+            <span class="status-badge status-${a.status}">${petalSVG(a.status,14)} ${statusLabel(a.status)}</span>
           </div>
-          <div class="req-actions">
-            <button class="btn btn-sage" onclick="confirmAppt('${a.id}')">Confirmar</button>
-            <button class="btn btn-danger" onclick="declineAppt('${a.id}')">Recusar</button>
-          </div>
+          ${apptActionsHTML(a)}
         </div>
       `;
     });
   }
   html += `</div>`;
   return html;
+}
+async function markRealizado(id){
+  await updateAppointmentStatus(id, 'realizado');
+  render();
+  toast('Atendimento marcado como realizado.');
 }
 
 async function confirmAppt(id){
@@ -755,10 +833,7 @@ function renderAdminAgenda(){
               </div>
               <span class="status-badge status-confirmado">${petalSVG('confirmado',14)} Confirmado</span>
             </div>
-            <div class="req-actions">
-              <button class="btn btn-danger" onclick="cancelApptByAdmin('${a.id}')">Cancelar agendamento</button>
-            </div>
-            ${calActionsHTML(a)}
+            ${apptActionsHTML(a)}
           </div>
         `;
       });
@@ -822,19 +897,44 @@ function addBlockedDate(){
 function removeBlockedDate(d){ DATA.settings.blockedDates = DATA.settings.blockedDates.filter(b=>b.date!==d); saveSettings(); render(); }
 
 function renderAdminServicos(){
-  let html = `<div class="card"><div class="section-title">Serviços oferecidos</div>`;
-  DATA.services.forEach(s=>{
-    html += `
-      <div class="svc-admin-row">
-        <input type="text" value="${s.name}" style="flex:2;" onchange="updateService('${s.id}','name',this.value)">
-        <input type="number" value="${s.duration}" style="flex:1;" onchange="updateService('${s.id}','duration',Number(this.value))">
-        <span style="font-size:12px;color:var(--ink-soft);">min</span>
-        <input type="number" value="${s.price}" style="flex:1;" onchange="updateService('${s.id}','price',Number(this.value))">
-        <button class="btn btn-danger" style="padding:8px 12px;" onclick="removeService('${s.id}')">Remover</button>
-      </div>
-    `;
+  const categories = getAllCategories();
+  let html = `
+    <div class="card">
+      <div class="section-title">Categorias de serviços</div>
+      <p style="color:var(--ink-soft);font-size:13px;margin-top:-6px;">Organize os serviços em grupos (ex: Pele, Cabelo, Corpo) para ficar mais fácil de escolher na hora de agendar.</p>
+      <div>`;
+  categories.forEach(c=>{
+    html += `<span class="chip">${c}${c!=='Outros' ? ` <button onclick="removeCategory('${c.replace(/'/g,"\\'")}')" title="Remover categoria">✕</button>` : ''}</span>`;
   });
-  html += `</div>`;
+  html += `</div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <input type="text" id="newCategoryInput" placeholder="Nova categoria (ex: Cabelo)" style="flex:1;">
+        <button class="btn btn-ghost" onclick="addCategory()">Adicionar</button>
+      </div>
+    </div>
+  `;
+
+  categories.forEach(cat=>{
+    const svcs = DATA.services.filter(s=>s.category===cat);
+    if(svcs.length===0) return;
+    html += `<div class="card"><div class="section-title">${cat}</div>`;
+    svcs.forEach(s=>{
+      html += `
+        <div class="svc-admin-row">
+          <input type="text" value="${s.name}" style="flex:2;min-width:140px;" onchange="updateService('${s.id}','name',this.value)">
+          <input type="number" value="${s.duration}" style="flex:1;min-width:70px;" onchange="updateService('${s.id}','duration',Number(this.value))">
+          <span style="font-size:12px;color:var(--ink-soft);">min</span>
+          <input type="number" value="${s.price}" style="flex:1;min-width:80px;" onchange="updateService('${s.id}','price',Number(this.value))">
+          <select style="flex:1;min-width:120px;" onchange="updateService('${s.id}','category',this.value)">
+            ${categories.map(c=>`<option value="${c}" ${s.category===c?'selected':''}>${c}</option>`).join('')}
+          </select>
+          <button class="btn btn-danger" style="padding:8px 12px;" onclick="removeService('${s.id}')">Remover</button>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  });
+
   html += `
     <div class="card">
       <div class="section-title">Adicionar novo serviço</div>
@@ -843,10 +943,37 @@ function renderAdminServicos(){
         <div style="flex:1;"><label>Duração (min)</label><input type="number" id="newSvcDuration" value="60"></div>
         <div style="flex:1;"><label>Preço (R$)</label><input type="number" id="newSvcPrice" value="100"></div>
       </div>
+      <label>Categoria</label>
+      <select id="newSvcCategory">${categories.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
       <button class="btn btn-primary" style="margin-top:14px;" onclick="addService()">Adicionar serviço</button>
     </div>
   `;
   return html;
+}
+function addCategory(){
+  const el = document.getElementById('newCategoryInput');
+  const name = el.value.trim();
+  if(!name){ toast('Digite um nome para a categoria.'); return; }
+  if(!DATA.settings.serviceCategories) DATA.settings.serviceCategories = DEFAULT_CATEGORIES.slice();
+  if(DATA.settings.serviceCategories.includes(name)){ toast('Essa categoria já existe.'); return; }
+  DATA.settings.serviceCategories.push(name);
+  saveSettings();
+  render();
+}
+async function removeCategory(name){
+  if(name==='Outros') return;
+  if(!confirm(`Remover a categoria "${name}"? Os serviços dela passam para "Outros".`)) return;
+  DATA.settings.serviceCategories = (DATA.settings.serviceCategories||DEFAULT_CATEGORIES.slice()).filter(c=>c!==name);
+  const affected = DATA.services.filter(s=>s.category===name);
+  affected.forEach(s=>{ s.category='Outros'; });
+  saveSettings();
+  if(sb){
+    try{ await Promise.all(affected.map(s=> sb.from('services').update({category:'Outros'}).eq('id',s.id))); }
+    catch(e){ toast('Não deu para atualizar todos os serviços no Supabase.'); }
+  } else if(affected.length){
+    try{ await window.storage.set('services', JSON.stringify(DATA.services), STORAGE_SHARED); }catch(e){}
+  }
+  render();
 }
 async function updateService(id,field,val){
   const s=DATA.services.find(x=>x.id===id); s[field]=val;
@@ -869,16 +996,17 @@ async function addService(){
   const name = document.getElementById('newSvcName').value.trim();
   const duration = Number(document.getElementById('newSvcDuration').value);
   const price = Number(document.getElementById('newSvcPrice').value);
+  const category = document.getElementById('newSvcCategory').value || 'Outros';
   if(!name){ toast('Dê um nome para o serviço.'); return; }
   if(sb){
     try{
-      const { data, error } = await sb.from('services').insert({name,duration,price}).select().single();
+      const { data, error } = await sb.from('services').insert({name,duration,price,category}).select().single();
       if(error) throw error;
-      DATA.services.push({id:data.id,name:data.name,duration:data.duration,price:Number(data.price)});
+      DATA.services.push({id:data.id,name:data.name,duration:data.duration,price:Number(data.price),category:data.category||category});
     }catch(e){ toast('Não deu para salvar no Supabase.'); return; }
     render(); return;
   }
-  DATA.services.push({id:uid(),name,duration,price});
+  DATA.services.push({id:uid(),name,duration,price,category});
   try{ await window.storage.set('services', JSON.stringify(DATA.services), STORAGE_SHARED); }catch(e){ toast('Não deu para salvar. Tenta de novo.'); }
   render();
 }
@@ -907,7 +1035,7 @@ function renderAdminConfig(){
   }
   html += `
     <div class="warn-box">
-      ${sb ? 'Site gerado e gerenciado por MB MKT.
+      ${sb ? 'Este site está conectado ao Supabase: as marcações, a agenda, os serviços e o login ficam salvos de verdade no seu banco de dados.' : 'Este é um protótipo funcional: as marcações e a agenda ficam salvas aqui na prévia do Claude — para dados de verdade, conecte o Supabase.'} O envio das mensagens de WhatsApp é feito com um toque (abre o WhatsApp já com o texto pronto) — não existe envio 100% automático sem conectar a uma API oficial do WhatsApp Business.
     </div>
   `;
   return html;
